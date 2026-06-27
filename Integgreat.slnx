@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Integgreat.API/Integgreat.API.csproj" />
+  <Project Path="Integgreat.Application/Integgreat.Application.csproj" />
+  <Project Path="Integgreat.Domain/Integgreat.Domain.csproj" />
+  <Project Path="Integgreat.Infrastructure/Integgreat.Infrastructure.csproj" />
+</Solution>
