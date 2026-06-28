@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Integgreat.Domain.Enums;
 
-namespace Integgreat.Domain.Enums
+public enum TaskStatus
 {
-    internal class TaskStatus
-    {
-    }
+    Todo,
+    InProgress,
+    Done
 }
