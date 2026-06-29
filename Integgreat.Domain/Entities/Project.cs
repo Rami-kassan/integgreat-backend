@@ -13,6 +13,6 @@ public class Project
     public Workspace Workspace { get; set; } = null!;
 
     public ICollection<Contract> Contracts { get; set; } = new List<Contract>();
-    public ICollection<Task> Tasks { get; set; } = new List<Task>();
+    public ICollection<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
     public ICollection<Request> Requests { get; set; } = new List<Request>();
 }

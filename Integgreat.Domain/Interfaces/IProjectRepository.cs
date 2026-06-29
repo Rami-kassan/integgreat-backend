@@ -1,4 +1,5 @@
 ﻿using Integgreat.Domain.Entities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Integgreat.Domain.Interfaces;
 

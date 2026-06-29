@@ -7,6 +7,7 @@ public class Contract
     public string FileUrl { get; set; } = string.Empty;
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsActive { get; set; } = true;
     public int ProjectId { get; set; }
     public Project Project { get; set; } = null!;
 }

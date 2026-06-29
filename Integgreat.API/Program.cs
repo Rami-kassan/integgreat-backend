@@ -1,15 +1,76 @@
+using Integgreat.Application.Mappings;
+using Integgreat.Application.Services;
+using Integgreat.Application.Services.Impl;
+using Integgreat.Domain.Interfaces;
+using Integgreat.Infrastructure.Data;
+using Integgreat.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// ═══════════════════════════════
+// DATABASE
+// ═══════════════════════════════
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// ═══════════════════════════════
+// REPOSITORIES
+// ═══════════════════════════════
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IWorkspaceRepository, WorkspaceRepository>();
+builder.Services.AddScoped<IRequestRepository, RequestRepository>();
+builder.Services.AddScoped<IContractRepository, ContractRepository>();
+builder.Services.AddScoped<IWorkspaceMemberRepository, WorkspaceMemberRepository>();
+
+// ═══════════════════════════════
+// SERVICES
+// ═══════════════════════════════
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
+builder.Services.AddScoped<IRequestService, RequestService>();
+builder.Services.AddScoped<IContractService, ContractService>();
+
+// ═══════════════════════════════
+// AUTOMAPPER
+// ═══════════════════════════════
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// ═══════════════════════════════
+// JWT
+// ═══════════════════════════════
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+
+// ═══════════════════════════════
+// CORS
+// ═══════════════════════════════
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVue", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:5173",
+                "https://localhost:5173",
                 "https://ton-app.vercel.app"
             )
             .AllowAnyHeader()
@@ -27,6 +88,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowVue");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

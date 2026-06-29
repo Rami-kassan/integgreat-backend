@@ -3,7 +3,7 @@ using TaskStatus = Integgreat.Domain.Enums.TaskStatus;
 
 namespace Integgreat.Domain.Entities;
 
-public class Task
+public class ProjectTask
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;

@@ -1,0 +1,59 @@
+﻿using Integgreat.Application.DTOs.Auth;
+using Integgreat.Application.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Integgreat.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
+{
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
+    {
+        _authService = authService;
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
+    {
+        try
+        {
+            var result = await _authService.LoginAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+    }
+
+    [HttpPost("register/client")]
+    public async Task<IActionResult> RegisterClient([FromBody] ClientRegisterDto dto)
+    {
+        try
+        {
+            var result = await _authService.RegisterClientAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("register/admin")]
+    public async Task<IActionResult> RegisterAdmin([FromBody] AdminRegisterDto dto)
+    {
+        try
+        {
+            var result = await _authService.RegisterAdminAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+}

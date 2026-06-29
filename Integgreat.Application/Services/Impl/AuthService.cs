@@ -1,0 +1,135 @@
+﻿using AutoMapper;
+using Integgreat.Application.DTOs.Auth;
+using Integgreat.Domain.Entities;
+using Integgreat.Domain.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace Integgreat.Application.Services.Impl;
+
+public class AuthService : IAuthService
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IMapper _mapper;
+    private readonly IConfiguration _configuration;
+
+    public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration)
+    {
+        _userRepository = userRepository;
+        _mapper = mapper;
+        _configuration = configuration;
+    }
+
+    // ═══════════════════════════════
+    // LOGIN
+    // ═══════════════════════════════
+    public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
+    {
+        var user = await _userRepository.GetByEmailAsync(dto.Email);
+        if (user == null) throw new Exception("Invalid credentials");
+
+        var isValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+        if (!isValid) throw new Exception("Invalid credentials");
+
+        var token = GenerateToken(user);
+
+        return new LoginResponseDto
+        {
+            Token = token,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user is Client ? "CLIENT" : "ADMIN"
+        };
+    }
+
+    // ═══════════════════════════════
+    // REGISTER CLIENT
+    // ═══════════════════════════════
+    public async Task<LoginResponseDto> RegisterClientAsync(ClientRegisterDto dto)
+    {
+        var existing = await _userRepository.GetByEmailAsync(dto.Email);
+        if (existing != null) throw new Exception("Email already exists");
+
+        var client = new Client
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Company = dto.Company,
+            Phone = dto.Phone,
+            BillingAddress = dto.BillingAddress
+        };
+
+        await _userRepository.AddAsync(client);
+
+        var token = GenerateToken(client);
+
+        return new LoginResponseDto
+        {
+            Token = token,
+            Name = client.Name,
+            Email = client.Email,
+            Role = "CLIENT"
+        };
+    }
+
+    // ═══════════════════════════════
+    // REGISTER ADMIN
+    // ═══════════════════════════════
+    public async Task<LoginResponseDto> RegisterAdminAsync(AdminRegisterDto dto)
+    {
+        var existing = await _userRepository.GetByEmailAsync(dto.Email);
+        if (existing != null) throw new Exception("Email already exists");
+
+        var admin = new Admin
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            IsSuperAdmin = dto.IsSuperAdmin,
+            CanManageUsers = dto.CanManageUsers
+        };
+
+        await _userRepository.AddAsync(admin);
+
+        var token = GenerateToken(admin);
+
+        return new LoginResponseDto
+        {
+            Token = token,
+            Name = admin.Name,
+            Email = admin.Email,
+            Role = "ADMIN"
+        };
+    }
+
+    // ═══════════════════════════════
+    // GENERATE JWT TOKEN
+    // ═══════════════════════════════
+    private string GenerateToken(User user)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim(ClaimTypes.Role, user is Client ? "CLIENT" : "ADMIN")
+        };
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            expires: DateTime.UtcNow.AddDays(7),
+            claims: claims,
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}
