@@ -48,6 +48,7 @@ builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
 builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IWorkspaceMemberService, WorkspaceMemberService>();
 
 // ═══════════════════════════════
 // AUTOMAPPER
