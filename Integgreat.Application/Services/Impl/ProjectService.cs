@@ -33,37 +33,22 @@ public class ProjectService : IProjectService
     {
         var project = await _projectRepository.GetByIdAsync(id);
         if (project == null) return null;
-        return _mapper.Map<ProjectResponseDto>(project);
+
+        var dto = _mapper.Map<ProjectResponseDto>(project);
+        dto.TotalHoursWorked = project.Tasks.Sum(t => t.CompletedHours);
+
+        return dto;
     }
 
     public async Task<ProjectResponseDto> CreateAsync(ProjectRequestDto dto)
     {
-        // 1. Créer le workspace automatiquement
-        var workspace = new Workspace
-        {
-            Name = "Workspace",
-            CreatedAt = DateTime.UtcNow
-        };
-        await _workspaceRepository.AddAsync(workspace);
-
-        // 2. Créer le projet lié au workspace
         var project = new Project
         {
             Name = dto.Name,
-            WorkspaceId = workspace.Id,
+            WorkspaceId = dto.WorkspaceId,
             CreatedAt = DateTime.UtcNow
         };
         await _projectRepository.AddAsync(project);
-
-        // 3. Ajouter le client comme membre du workspace
-        var member = new WorkspaceMember
-        {
-            ClientId = dto.ClientId,
-            WorkspaceId = workspace.Id,
-            RoleId = 2, // Role "Client" par défaut
-            JoinedAt = DateTime.UtcNow
-        };
-        await _workspaceMemberRepository.AddAsync(member);
 
         return _mapper.Map<ProjectResponseDto>(project);
     }

@@ -42,5 +42,13 @@ public class AppDbContext : DbContext
             .WithMany(p => p.Contracts)
             .HasForeignKey(c => c.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Role → Workspace (optionnel)
+        modelBuilder.Entity<Role>()
+            .HasOne(r => r.Workspace)
+            .WithMany(w => w.Roles)
+            .HasForeignKey(r => r.WorkspaceId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

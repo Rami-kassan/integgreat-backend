@@ -3,5 +3,5 @@
 public class ProjectRequestDto
 {
     public string Name { get; set; } = string.Empty;
-    public int ClientId { get; set; }
+    public int WorkspaceId { get; set; }
 }

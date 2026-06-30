@@ -7,7 +7,7 @@ public class ProjectResponseDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public decimal HoursWorked { get; set; }
+    public double TotalHoursWorked { get; set; }
     public DateTime CreatedAt { get; set; }
     public int WorkspaceId { get; set; }
     public List<ContractResponseDto> Contracts { get; set; } = new();

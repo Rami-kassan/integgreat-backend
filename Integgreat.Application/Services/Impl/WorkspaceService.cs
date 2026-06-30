@@ -3,16 +3,25 @@ using Integgreat.Application.DTOs.Workspace;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 using Task = System.Threading.Tasks.Task;
+
 namespace Integgreat.Application.Services.Impl;
 
 public class WorkspaceService : IWorkspaceService
 {
     private readonly IWorkspaceRepository _workspaceRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
     private readonly IMapper _mapper;
 
-    public WorkspaceService(IWorkspaceRepository workspaceRepository, IMapper mapper)
+    public WorkspaceService(
+        IWorkspaceRepository workspaceRepository,
+        IRoleRepository roleRepository,
+        IWorkspaceMemberRepository workspaceMemberRepository,
+        IMapper mapper)
     {
         _workspaceRepository = workspaceRepository;
+        _roleRepository = roleRepository;
+        _workspaceMemberRepository = workspaceMemberRepository;
         _mapper = mapper;
     }
 
@@ -31,8 +40,24 @@ public class WorkspaceService : IWorkspaceService
 
     public async Task<WorkspaceResponseDto> CreateAsync(WorkspaceRequestDto dto)
     {
-        var workspace = _mapper.Map<Workspace>(dto);
+        var workspace = new Workspace
+        {
+            Name = dto.Name,
+            CreatedAt = DateTime.UtcNow
+        };
         await _workspaceRepository.AddAsync(workspace);
+
+        var ownerRole = await _roleRepository.GetByNameAsync("Owner");
+
+        var member = new WorkspaceMember
+        {
+            ClientId = dto.ClientId,
+            WorkspaceId = workspace.Id,
+            RoleId = ownerRole!.Id,
+            JoinedAt = DateTime.UtcNow
+        };
+        await _workspaceMemberRepository.AddAsync(member);
+
         return _mapper.Map<WorkspaceResponseDto>(workspace);
     }
 
