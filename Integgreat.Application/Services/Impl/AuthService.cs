@@ -111,13 +111,14 @@ public class AuthService : IAuthService
     // ═══════════════════════════════
     private string GenerateToken(User user)
     {
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Role, user is Client ? "CLIENT" : "ADMIN")
-        };
+    var claims = new List<Claim>
+    {
+        new Claim("id", user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim("name", user.Name),
+        new Claim(ClaimTypes.Role, user is Client ? "CLIENT" : "ADMIN"),
+        new Claim("isSuperAdmin", user is Admin admin && admin.IsSuperAdmin ? "True" : "False")
+    };
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
