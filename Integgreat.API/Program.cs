@@ -71,6 +71,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = "role"
         };
     });
+builder.Services.AddAuthorization();
 
 // ═══════════════════════════════
 // CORS
@@ -96,7 +97,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowVue");
 app.UseAuthentication();
 app.UseAuthorization();

@@ -22,6 +22,16 @@ public class WorkspaceRepository : IWorkspaceRepository
             .ToListAsync();
     }
 
+    public async Task<List<Workspace>> GetAllByClientAsync(int clientId)
+    {
+        return await _context.WorkspaceMembers
+            .Where(wm => wm.ClientId == clientId)
+            .Include(wm => wm.Workspace)
+                .ThenInclude(w => w.Projects)
+            .Select(wm => wm.Workspace)
+            .ToListAsync();
+    }
+
     public async Task<Workspace?> GetByIdAsync(int id)
     {
         return await _context.Workspaces
