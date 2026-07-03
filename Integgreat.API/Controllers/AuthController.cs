@@ -1,5 +1,7 @@
-﻿using Integgreat.Application.DTOs.Auth;
+﻿using Integgreat.API.Middleware;
+using Integgreat.Application.DTOs.Auth;
 using Integgreat.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Integgreat.API.Controllers;
@@ -30,6 +32,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register/client")]
+    [SuperAdmin]
     public async Task<IActionResult> RegisterClient([FromBody] ClientRegisterDto dto)
     {
         try
@@ -44,8 +47,14 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register/admin")]
+    [SuperAdmin]
     public async Task<IActionResult> RegisterAdmin([FromBody] AdminRegisterDto dto)
     {
+        // Vérifie manuellement isSuperAdmin
+        var isSuperAdmin = User.FindFirst("isSuperAdmin")?.Value;
+        if (isSuperAdmin != "True")
+            return Forbid();
+
         try
         {
             var result = await _authService.RegisterAdminAsync(dto);
@@ -55,5 +64,7 @@ public class AuthController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+
+        
     }
 }

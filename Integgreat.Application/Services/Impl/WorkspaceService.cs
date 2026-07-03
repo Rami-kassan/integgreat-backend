@@ -31,6 +31,12 @@ public class WorkspaceService : IWorkspaceService
         return _mapper.Map<List<WorkspaceResponseDto>>(workspaces);
     }
 
+    public async Task<List<WorkspaceResponseDto>> GetAllByClientAsync(int clientId)
+    {
+        var workspaces = await _workspaceRepository.GetAllByClientAsync(clientId);
+        return _mapper.Map<List<WorkspaceResponseDto>>(workspaces);
+    }
+
     public async Task<WorkspaceResponseDto?> GetByIdAsync(int id)
     {
         var workspace = await _workspaceRepository.GetByIdAsync(id);
@@ -68,6 +74,12 @@ public class WorkspaceService : IWorkspaceService
         _mapper.Map(dto, workspace);
         await _workspaceRepository.UpdateAsync(workspace);
         return _mapper.Map<WorkspaceResponseDto>(workspace);
+    }
+
+    public async Task<bool> IsClientMemberAsync(int clientId, int workspaceId)
+    {
+        var members = await _workspaceMemberRepository.GetAllByWorkspaceAsync(workspaceId);
+        return members.Any(m => m.ClientId == clientId);
     }
 
     public async Task DeleteAsync(int id)

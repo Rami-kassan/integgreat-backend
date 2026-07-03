@@ -1,7 +1,10 @@
-﻿using Integgreat.Application.DTOs.Task;
+﻿using Integgreat.API.Middleware;
+using Integgreat.Application.DTOs.Task;
 using Integgreat.Application.Services;
+using Integgreat.Application.Services.Impl;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Integgreat.API.Controllers;
 
@@ -11,21 +14,71 @@ namespace Integgreat.API.Controllers;
 public class TaskController : ControllerBase
 {
     private readonly ITaskService _taskService;
+    private readonly IProjectService _projectService;
+    private readonly IWorkspaceService _workspaceService;
 
-    public TaskController(ITaskService taskService)
-    {
-        _taskService = taskService;
-    }
+    public TaskController(
+    ITaskService taskService,
+    IProjectService projectService,
+    IWorkspaceService workspaceService)
+{
+    _taskService = taskService;
+    _projectService = projectService;
+    _workspaceService = workspaceService;
+}
 
     [HttpGet("project/{projectId}")]
     public async Task<IActionResult> GetAllByProject(int projectId)
     {
-        var tasks = await _taskService.GetAllByProjectAsync(projectId);
-        return Ok(tasks);
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        var project = await _projectService.GetByIdAsync(projectId);
+        if (project == null) return NotFound();
+
+        if (role == "ADMIN")
+        {
+            var tasks = await _taskService.GetAllByProjectAsync(projectId);
+            return Ok(tasks);
+        }
+        else
+        {
+            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
+            if (!isMember) return NotFound();
+
+            var tasks = await _taskService.GetAllByProjectAsync(projectId);
+            return Ok(tasks);
+        }
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        var task = await _taskService.GetByIdAsync(id);
+        if (task == null) return NotFound();
+
+        if (role == "ADMIN")
+        {
+            return Ok(task);
+        }
+        else
+        {
+            var clientId = int.Parse(User.FindFirst("id")!.Value);
+
+            var project = await _projectService.GetByIdAsync(task.ProjectId);
+            if (project == null) return NotFound();
+
+            var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
+            if (!isMember) return NotFound();
+
+            return Ok(task);
+        }
     }
 
     [HttpPost]
-    [Authorize(Roles = "ADMIN")]
+    [SuperAdmin]
     public async Task<IActionResult> Create([FromBody] TaskRequestDto dto)
     {
         var result = await _taskService.CreateAsync(dto);
@@ -46,5 +99,16 @@ public class TaskController : ControllerBase
     {
         var result = await _taskService.UpdateStatusAsync(id, status);
         return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    [SuperAdmin]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var task = await _taskService.GetByIdAsync(id);
+        if (task == null) return NotFound();
+
+        await _taskService.DeleteAsync(id);
+        return NoContent();
     }
 }

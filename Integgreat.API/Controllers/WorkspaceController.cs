@@ -1,7 +1,9 @@
-﻿using Integgreat.Application.DTOs.Workspace;
+﻿using Integgreat.API.Middleware;
+using Integgreat.Application.DTOs.Workspace;
 using Integgreat.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Integgreat.API.Controllers;
 
@@ -20,19 +22,45 @@ public class WorkspaceController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var workspaces = await _workspaceService.GetAllAsync();
-        return Ok(workspaces);
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (role == "ADMIN")
+        {
+            var workspaces = await _workspaceService.GetAllAsync();
+            return Ok(workspaces);
+        }
+        else
+        {
+            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var workspaces = await _workspaceService.GetAllByClientAsync(clientId);
+            return Ok(workspaces);
+        }
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var workspace = await _workspaceService.GetByIdAsync(id);
-        if (workspace == null) return NotFound();
-        return Ok(workspace);
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (role == "ADMIN")
+        {
+            var workspace = await _workspaceService.GetByIdAsync(id);
+            if (workspace == null) return NotFound();
+            return Ok(workspace);
+        }
+        else
+        {
+            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var isMember = await _workspaceService.IsClientMemberAsync(clientId, id);
+            if (!isMember) return NotFound();
+
+            var workspace = await _workspaceService.GetByIdAsync(id);
+            return Ok(workspace);
+        }
     }
 
     [HttpPost]
+    [SuperAdmin]
     public async Task<IActionResult> Create([FromBody] WorkspaceRequestDto dto)
     {
         try
@@ -47,6 +75,7 @@ public class WorkspaceController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [SuperAdmin]
     public async Task<IActionResult> Update(int id, [FromBody] WorkspaceRequestDto dto)
     {
         try
@@ -61,6 +90,7 @@ public class WorkspaceController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [SuperAdmin]
     public async Task<IActionResult> Delete(int id)
     {
         await _workspaceService.DeleteAsync(id);
