@@ -25,4 +25,20 @@ public class UserRepository : IUserRepository
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<User?> GetByIdAsync(int id)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<List<string>> GetClientPermissionsAsync(int clientId)
+    {
+        return await _context.WorkspaceMembers
+            .Where(wm => wm.ClientId == clientId)
+            .SelectMany(wm => wm.Role.RolePermissions)
+            .Select(rp => rp.Permission.ToString())
+            .Distinct()
+            .ToListAsync();
+    }
 }

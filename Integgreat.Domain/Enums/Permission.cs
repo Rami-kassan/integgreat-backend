@@ -2,14 +2,13 @@
 
 public enum Permission
 {
-    ViewProject,
     ViewHours,
     ViewContract,
     DownloadContract,
     CreateRequest,
     ViewRequest,
     ViewTask,
+    ViewMembers,
     ManageMembers,
-    ManageProject,
-    ApproveRequest
+    ManageProject
 }

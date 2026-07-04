@@ -2,6 +2,7 @@
 using Integgreat.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Integgreat.API.Controllers;
 
@@ -38,5 +39,25 @@ public class WorkspaceMemberController : ControllerBase
     {
         await _workspaceMemberService.RemoveMemberAsync(clientId, workspaceId);
         return NoContent();
+    }
+
+    [HttpPut("client/{clientId}/workspace/{workspaceId}/role")]
+    [Authorize]
+    public async Task<IActionResult> UpdateRole(int clientId, int workspaceId, [FromBody] int roleId)
+    {
+        try
+        {
+            // Vérifie que le user connecté est Owner de CE workspace
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var isOwner = await _workspaceMemberService.IsOwnerOfWorkspaceAsync(currentUserId, workspaceId);
+            if (!isOwner) return Forbid();
+
+            await _workspaceMemberService.UpdateRoleAsync(clientId, workspaceId, roleId);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

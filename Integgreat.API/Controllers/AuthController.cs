@@ -1,6 +1,8 @@
 ﻿using Integgreat.Application.DTOs.Auth;
 using Integgreat.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Integgreat.API.Controllers;
 
@@ -55,5 +57,14 @@ public class AuthController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> Me()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var result = await _authService.GetMeAsync(userId);
+        return Ok(result);
     }
 }

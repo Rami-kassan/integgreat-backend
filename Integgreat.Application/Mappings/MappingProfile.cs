@@ -3,6 +3,7 @@ using Integgreat.Application.DTOs.Auth;
 using Integgreat.Application.DTOs.Contract;
 using Integgreat.Application.DTOs.Project;
 using Integgreat.Application.DTOs.Request;
+using Integgreat.Application.DTOs.Role;
 using Integgreat.Application.DTOs.Task;
 using Integgreat.Application.DTOs.Workspace;
 using Integgreat.Domain.Entities;
@@ -37,7 +38,6 @@ public class MappingProfile : Profile
         CreateMap<WorkspaceMember, WorkspaceMemberResponseDto>()
             .ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.Name))
             .ForMember(dest => dest.ClientEmail, opt => opt.MapFrom(src => src.Client.Email))
-            .ForMember(dest => dest.WorkspaceName, opt => opt.MapFrom(src => src.Workspace.Name))
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.Name));
 
         // Auth
@@ -45,5 +45,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "CLIENT"));
         CreateMap<Admin, LoginResponseDto>()
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "ADMIN"));
+
+        // Role
+        CreateMap<Role, RoleResponseDto>();
     }
 }

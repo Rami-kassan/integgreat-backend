@@ -22,6 +22,32 @@ public class AuthService : IAuthService
         _mapper = mapper;
         _configuration = configuration;
     }
+    // ═══════════════════════════════
+    // GET ME
+    // ═══════════════════════════════
+
+    public async Task<MeResponseDto> GetMeAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) throw new Exception("User not found");
+
+        var permissions = new List<string>();
+        if (user is Client)
+        {
+            permissions = await _userRepository.GetClientPermissionsAsync(userId);
+        }
+
+        return new MeResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user is Client ? "CLIENT" : "ADMIN",
+            IsSuperAdmin = user is Admin admin && admin.IsSuperAdmin,
+            Permissions = permissions
+        };
+    }
+
 
     // ═══════════════════════════════
     // LOGIN
@@ -38,6 +64,7 @@ public class AuthService : IAuthService
 
         return new LoginResponseDto
         {
+            Id = user.Id,
             Token = token,
             Name = user.Name,
             Email = user.Email,
@@ -116,7 +143,8 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Role, user is Client ? "CLIENT" : "ADMIN")
+            new Claim(ClaimTypes.Role, user is Client ? "CLIENT" : "ADMIN"),
+            new Claim("isSuperAdmin", user is Admin admin && admin.IsSuperAdmin ? "True" : "False")
         };
 
         var key = new SymmetricSecurityKey(

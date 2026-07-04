@@ -49,6 +49,7 @@ builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IWorkspaceMemberService, WorkspaceMemberService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 // ═══════════════════════════════
 // AUTOMAPPER
@@ -79,7 +80,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowVue", policy =>
     {
         policy.WithOrigins(
-                "https://localhost:5173",
+                "http://localhost:5173",
                 "https://ton-app.vercel.app"
             )
             .AllowAnyHeader()

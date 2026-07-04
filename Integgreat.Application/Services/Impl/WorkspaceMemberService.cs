@@ -8,11 +8,16 @@ namespace Integgreat.Application.Services.Impl;
 public class WorkspaceMemberService : IWorkspaceMemberService
 {
     private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
 
-    public WorkspaceMemberService(IWorkspaceMemberRepository workspaceMemberRepository, IMapper mapper)
+    public WorkspaceMemberService(
+        IWorkspaceMemberRepository workspaceMemberRepository,
+        IRoleRepository roleRepository,
+        IMapper mapper)
     {
         _workspaceMemberRepository = workspaceMemberRepository;
+        _roleRepository = roleRepository;
         _mapper = mapper;
     }
 
@@ -32,11 +37,34 @@ public class WorkspaceMemberService : IWorkspaceMemberService
             JoinedAt = DateTime.UtcNow
         };
         await _workspaceMemberRepository.AddAsync(member);
-        return _mapper.Map<WorkspaceMemberResponseDto>(member);
+
+        // Recharge le membre avec les navigation properties
+        var memberWithDetails = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(dto.ClientId, dto.WorkspaceId);
+        return _mapper.Map<WorkspaceMemberResponseDto>(memberWithDetails);
     }
 
     public async Task RemoveMemberAsync(int clientId, int workspaceId)
     {
         await _workspaceMemberRepository.DeleteAsync(clientId, workspaceId);
+    }
+
+    public async Task UpdateRoleAsync(int clientId, int workspaceId, int roleId)
+    {
+        var member = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(clientId, workspaceId);
+        if (member == null) throw new Exception("Member not found");
+
+        // Vérifie si le nouveau rôle est Owner
+        var newRole = await _roleRepository.GetByIdAsync(roleId);
+        if (newRole?.Name == "Owner")
+            throw new Exception("Cannot assign Owner role — a workspace can only have one Owner.");
+
+        member.RoleId = roleId;
+        await _workspaceMemberRepository.UpdateAsync(member);
+    }
+
+    public async Task<bool> IsOwnerOfWorkspaceAsync(int clientId, int workspaceId)
+    {
+        var member = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(clientId, workspaceId);
+        return member?.Role.Name == "Owner";
     }
 }

@@ -10,6 +10,4 @@ public class ProjectResponseDto
     public double TotalHoursWorked { get; set; }
     public DateTime CreatedAt { get; set; }
     public int WorkspaceId { get; set; }
-    public List<ContractResponseDto> Contracts { get; set; } = new();
-    public List<TaskResponseDto> Tasks { get; set; } = new();
 }

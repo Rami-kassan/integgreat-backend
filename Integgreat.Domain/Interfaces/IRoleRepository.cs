@@ -8,4 +8,8 @@ public interface IRoleRepository
     Task<Role?> GetByNameAsync(string name);
     Task<List<Role>> GetAllByWorkspaceAsync(int? workspaceId);
     Task AddAsync(Role role);
+    Task<List<Role>> GetAllGlobalAsync();
+    Task<List<Role>> GetAllByWorkspaceIncludingGlobalAsync(int workspaceId);
+    Task<Role?> GetByIdWithPermissionsAsync(int id);
+    Task UpdateAsync(Role role);
 }

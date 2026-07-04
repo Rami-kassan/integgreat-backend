@@ -39,4 +39,18 @@ public class WorkspaceMemberRepository : IWorkspaceMemberRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<WorkspaceMember?> GetByClientAndWorkspaceAsync(int clientId, int workspaceId)
+    {
+        return await _context.WorkspaceMembers
+            .Include(wm => wm.Client)
+            .Include(wm => wm.Role)
+            .FirstOrDefaultAsync(wm => wm.ClientId == clientId && wm.WorkspaceId == workspaceId);
+    }
+
+    public async Task UpdateAsync(WorkspaceMember member)
+    {
+        _context.WorkspaceMembers.Update(member);
+        await _context.SaveChangesAsync();
+    }
 }

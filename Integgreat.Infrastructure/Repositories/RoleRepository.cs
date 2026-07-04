@@ -41,4 +41,32 @@ public class RoleRepository : IRoleRepository
         await _context.Roles.AddAsync(role);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<Role>> GetAllGlobalAsync()
+    {
+        return await _context.Roles
+            .Where(r => r.WorkspaceId == null)
+            .ToListAsync();
+    }
+
+    public async Task<List<Role>> GetAllByWorkspaceIncludingGlobalAsync(int workspaceId)
+    {
+        return await _context.Roles
+            .Include(r => r.RolePermissions)
+            .Where(r => r.WorkspaceId == null || r.WorkspaceId == workspaceId)
+            .ToListAsync();
+    }
+
+    public async Task<Role?> GetByIdWithPermissionsAsync(int id)
+    {
+        return await _context.Roles
+            .Include(r => r.RolePermissions)
+            .FirstOrDefaultAsync(r => r.Id == id);
+    }
+
+    public async Task UpdateAsync(Role role)
+    {
+        _context.Roles.Update(role);
+        await _context.SaveChangesAsync();
+    }
 }

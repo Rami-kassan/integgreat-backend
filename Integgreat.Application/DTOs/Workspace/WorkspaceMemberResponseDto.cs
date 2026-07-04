@@ -6,7 +6,6 @@ public class WorkspaceMemberResponseDto
     public string ClientName { get; set; } = string.Empty;
     public string ClientEmail { get; set; } = string.Empty;
     public int WorkspaceId { get; set; }
-    public string WorkspaceName { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
     public DateTime JoinedAt { get; set; }
 }
