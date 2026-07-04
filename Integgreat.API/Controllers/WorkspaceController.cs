@@ -31,7 +31,7 @@ public class WorkspaceController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var workspaces = await _workspaceService.GetAllByClientAsync(clientId);
             return Ok(workspaces);
         }
@@ -50,7 +50,7 @@ public class WorkspaceController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, id);
             if (!isMember) return NotFound();
 

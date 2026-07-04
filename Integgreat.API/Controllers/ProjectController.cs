@@ -37,7 +37,7 @@ public class ProjectController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, workspaceId);
             if (!isMember) return NotFound();
 
@@ -62,7 +62,7 @@ public class ProjectController : ControllerBase
             var project = await _projectService.GetByIdAsync(id);
             if (project == null) return NotFound();
 
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
 

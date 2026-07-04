@@ -43,7 +43,7 @@ public class ContractController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
@@ -71,7 +71,7 @@ public class ContractController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();

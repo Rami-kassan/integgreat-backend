@@ -42,7 +42,7 @@ public class TaskController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
 
@@ -65,7 +65,7 @@ public class TaskController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var project = await _projectService.GetByIdAsync(task.ProjectId);
             if (project == null) return NotFound();

@@ -44,7 +44,7 @@ public class RequestController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
 
@@ -68,7 +68,7 @@ public class RequestController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var project = await _projectService.GetByIdAsync(request.ProjectId);
             if (project == null) return NotFound();
@@ -94,7 +94,7 @@ public class RequestController : ControllerBase
         if (role != "ADMIN" || isSuperAdmin != "True")
         {
             // Client doit être membre du workspace
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
         }

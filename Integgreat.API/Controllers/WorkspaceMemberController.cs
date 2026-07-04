@@ -40,7 +40,7 @@ public class WorkspaceMemberController : ControllerBase
         }
         else
         {
-            var clientId = int.Parse(User.FindFirst("id")!.Value);
+            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, workspaceId);
             if (!isMember) return NotFound();
 
