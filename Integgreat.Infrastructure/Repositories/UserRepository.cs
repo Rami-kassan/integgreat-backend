@@ -41,4 +41,17 @@ public class UserRepository : IUserRepository
             .Distinct()
             .ToListAsync();
     }
+
+    public async Task<List<User>> GetAllAsync()
+    {
+        return await _context.Users.ToListAsync();
+    }
+
+    public async Task<List<User>> GetRecentAsync(int count)
+    {
+        return await _context.Users
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
 }

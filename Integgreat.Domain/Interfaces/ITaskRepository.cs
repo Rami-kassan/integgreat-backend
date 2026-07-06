@@ -9,4 +9,5 @@ public interface ITaskRepository
     Task AddAsync(ProjectTask task);
     Task UpdateAsync(ProjectTask task);
     Task DeleteAsync(int id);
+    Task<List<ProjectTask>> GetAllAsync();
 }

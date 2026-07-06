@@ -41,4 +41,18 @@ public class RequestRepository : IRequestRepository
         _context.Requests.Update(request);
         await _context.SaveChangesAsync();
     }
+    public async Task<List<Request>> GetAllAsync()
+    {
+        return await _context.Requests.ToListAsync();
+    }
+
+    public async Task<List<Request>> GetRecentAsync(int count)
+    {
+        return await _context.Requests
+            .Include(r => r.Client)
+            .Include(r => r.Project)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
 }

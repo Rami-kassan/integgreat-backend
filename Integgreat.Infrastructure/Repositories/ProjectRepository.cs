@@ -54,4 +54,18 @@ public class ProjectRepository : IProjectRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<List<Project>> GetAllAsync()
+    {
+        return await _context.Projects.ToListAsync();
+    }
+
+    public async Task<List<Project>> GetAllWithDetailsAsync()
+    {
+        return await _context.Projects
+            .Include(p => p.Tasks)
+                .ThenInclude(t => t.TimeEntries)
+            .Include(p => p.Workspace)
+            .ToListAsync();
+    }
 }

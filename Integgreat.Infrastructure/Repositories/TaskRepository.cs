@@ -50,4 +50,8 @@ public class TaskRepository : ITaskRepository
             await _context.SaveChangesAsync();
         }
     }
+    public async Task<List<ProjectTask>> GetAllAsync()
+    {
+        return await _context.Tasks.ToListAsync();
+    }
 }
