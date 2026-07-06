@@ -37,15 +37,6 @@ public class TaskService : ITaskService
         return _mapper.Map<TaskResponseDto>(task);
     }
 
-    public async Task<TaskResponseDto> UpdateCompletedHoursAsync(int id, double completedHours)
-    {
-        var task = await _taskRepository.GetByIdAsync(id);
-        if (task == null) throw new Exception("Task not found");
-        task.CompletedHours = completedHours;
-        await _taskRepository.UpdateAsync(task);
-        return _mapper.Map<TaskResponseDto>(task);
-    }
-
     public async Task<TaskResponseDto> UpdateStatusAsync(int id, TaskStatus status)
     {
         var task = await _taskRepository.GetByIdAsync(id);

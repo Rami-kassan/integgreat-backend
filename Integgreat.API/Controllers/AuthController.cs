@@ -51,11 +51,6 @@ public class AuthController : ControllerBase
     [SuperAdmin]
     public async Task<IActionResult> RegisterAdmin([FromBody] AdminRegisterDto dto)
     {
-        // Vérifie manuellement isSuperAdmin
-        var isSuperAdmin = User.FindFirst("isSuperAdmin")?.Value;
-        if (isSuperAdmin != "True")
-            return Forbid();
-
         try
         {
             var result = await _authService.RegisterAdminAsync(dto);

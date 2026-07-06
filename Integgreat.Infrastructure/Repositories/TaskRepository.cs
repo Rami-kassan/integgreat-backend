@@ -17,6 +17,7 @@ public class TaskRepository : ITaskRepository
     public async Task<List<ProjectTask>> GetAllByProjectAsync(int projectId)
     {
         return await _context.Tasks
+            .Include(t => t.TimeEntries)
             .Where(t => t.ProjectId == projectId)
             .ToListAsync();
     }
@@ -24,6 +25,7 @@ public class TaskRepository : ITaskRepository
     public async Task<ProjectTask?> GetByIdAsync(int id)
     {
         return await _context.Tasks
+            .Include(t => t.TimeEntries) 
             .FirstOrDefaultAsync(t => t.Id == id);
     }
 

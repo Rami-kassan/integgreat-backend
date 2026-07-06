@@ -38,6 +38,7 @@ builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<IWorkspaceMemberRepository, WorkspaceMemberRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ITimeEntryRepository, TimeEntryRepository>();
 
 // ═══════════════════════════════
 // SERVICES
@@ -50,6 +51,7 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IWorkspaceMemberService, WorkspaceMemberService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<ITimeEntryService, TimeEntryService>();
 
 // ═══════════════════════════════
 // AUTOMAPPER

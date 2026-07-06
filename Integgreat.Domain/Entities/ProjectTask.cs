@@ -10,8 +10,9 @@ public class ProjectTask
     public string Description { get; set; } = string.Empty;
     public TaskStatus Status { get; set; } = TaskStatus.Todo;
     public double EstimatedHours { get; set; }
-    public double CompletedHours { get; set; }
 
     public int ProjectId { get; set; }
     public Project Project { get; set; } = null!;
+    public ICollection<TimeEntry> TimeEntries { get; set; } = new List<TimeEntry>();
+    public double CompletedHours => TimeEntries.Sum(e => e.Hours);
 }

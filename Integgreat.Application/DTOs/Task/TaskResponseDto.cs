@@ -1,4 +1,5 @@
-﻿using Integgreat.Domain.Enums;
+﻿using Integgreat.Application.DTOs.TimeEntry;
+using Integgreat.Domain.Enums;
 using TaskStatus = Integgreat.Domain.Enums.TaskStatus;
 
 namespace Integgreat.Application.DTOs.Task;
@@ -12,4 +13,5 @@ public class TaskResponseDto
     public double EstimatedHours { get; set; }
     public double CompletedHours { get; set; }
     public int ProjectId { get; set; }
+    public List<TimeEntryResponseDto> TimeEntries { get; set; } = new();
 }
