@@ -8,4 +8,6 @@ public interface IUserRepository
     Task AddAsync(User user);
     Task<User?> GetByIdAsync(int id);
     Task<List<string>> GetClientPermissionsAsync(int clientId);
+    Task<List<User>> GetAllAsync();
+    Task<List<User>> GetRecentAsync(int count);
 }

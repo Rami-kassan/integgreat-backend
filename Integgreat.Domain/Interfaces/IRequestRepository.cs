@@ -9,4 +9,6 @@ public interface IRequestRepository
     Task<Request?> GetByIdAsync(int id);
     Task AddAsync(Request request);
     Task UpdateAsync(Request request);
+    Task<List<Request>> GetAllAsync();
+    Task<List<Request>> GetRecentAsync(int count);
 }

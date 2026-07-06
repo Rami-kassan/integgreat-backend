@@ -10,4 +10,6 @@ public interface IProjectRepository
     Task AddAsync(Project project);
     Task UpdateAsync(Project project);
     Task DeleteAsync(int id);
+    Task<List<Project>> GetAllAsync();
+    Task<List<Project>> GetAllWithDetailsAsync();
 }

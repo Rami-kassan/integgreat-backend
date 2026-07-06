@@ -68,7 +68,8 @@ public class AuthService : IAuthService
             Token = token,
             Name = user.Name,
             Email = user.Email,
-            Role = user is Client ? "CLIENT" : "ADMIN"
+            Role = user is Client ? "CLIENT" : "ADMIN",
+            IsSuperAdmin = user is Admin admin && admin.IsSuperAdmin
         };
     }
 
