@@ -5,6 +5,7 @@ using Integgreat.Application.DTOs.Project;
 using Integgreat.Application.DTOs.Request;
 using Integgreat.Application.DTOs.Role;
 using Integgreat.Application.DTOs.Task;
+using Integgreat.Application.DTOs.TimeEntry;
 using Integgreat.Application.DTOs.Workspace;
 using Integgreat.Domain.Entities;
 
@@ -48,5 +49,14 @@ public class MappingProfile : Profile
 
         // Role
         CreateMap<Role, RoleResponseDto>();
+
+        // TimeEntry
+        CreateMap<TimeEntry, TimeEntryResponseDto>();
+        CreateMap<TimeEntryRequestDto, TimeEntry>();
+
+        // Task — CompletedHours calculé depuis TimeEntries
+        CreateMap<ProjectTask, TaskResponseDto>()
+            .ForMember(dest => dest.CompletedHours,
+                       opt => opt.MapFrom(src => src.TimeEntries.Sum(e => e.Hours)));
     }
 }

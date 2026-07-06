@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<ProjectTask> Tasks => Set<ProjectTask>();
     public DbSet<Request> Requests => Set<Request>();
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +50,17 @@ public class AppDbContext : DbContext
             .WithMany(w => w.Roles)
             .HasForeignKey(r => r.WorkspaceId)
             .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // CompletedHours est calculé — pas de colonne en DB
+        modelBuilder.Entity<ProjectTask>()
+            .Ignore(t => t.CompletedHours);
+
+        // TimeEntry → ProjectTask
+        modelBuilder.Entity<TimeEntry>()
+            .HasOne(te => te.Task)
+            .WithMany(t => t.TimeEntries)
+            .HasForeignKey(te => te.TaskId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
