@@ -72,4 +72,38 @@ public class AdminController : ControllerBase
         var data = await _adminService.GetHoursByWorkspaceAsync();
         return Ok(data);
     }
+
+    [HttpGet("users/{id}")]
+    [SuperAdmin]
+    public async Task<IActionResult> GetUserDetails(int id)
+    {
+        var result = await _adminService.GetUserDetailsAsync(id);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpGet("workspaces")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> GetWorkspaces()
+    {
+        var data = await _adminService.GetWorkspacesAsync();
+        return Ok(data);
+    }
+
+    [HttpGet("workspaces/{id}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> GetWorkspaceDetails(int id)
+    {
+        var result = await _adminService.GetWorkspaceDetailsAsync(id);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpGet("projects")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> GetProjects()
+    {
+        var data = await _adminService.GetProjectsAsync();
+        return Ok(data);
+    }
 }

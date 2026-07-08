@@ -53,4 +53,17 @@ public class WorkspaceMemberRepository : IWorkspaceMemberRepository
         _context.WorkspaceMembers.Update(member);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<WorkspaceMember>> GetAllByClientAsync(int clientId)
+    {
+        return await _context.WorkspaceMembers
+            .Include(wm => wm.Workspace)
+                .ThenInclude(w => w.Projects)
+                    .ThenInclude(p => p.Tasks)
+                        .ThenInclude(t => t.TimeEntries)
+            .Include(wm => wm.Workspace)
+                .ThenInclude(w => w.Members) 
+            .Where(wm => wm.ClientId == clientId)
+            .ToListAsync();
+    }
 }

@@ -9,4 +9,5 @@ public interface IWorkspaceMemberRepository
     Task DeleteAsync(int clientId, int workspaceId);
     Task<WorkspaceMember?> GetByClientAndWorkspaceAsync(int clientId, int workspaceId);
     Task UpdateAsync(WorkspaceMember member);
+    Task<List<WorkspaceMember>> GetAllByClientAsync(int clientId);
 }
