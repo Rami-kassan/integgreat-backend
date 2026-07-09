@@ -11,4 +11,6 @@ public interface IWorkspaceRepository
     Task AddAsync(Workspace workspace);
     Task UpdateAsync(Workspace workspace);
     Task DeleteAsync(int id);
+    Task<List<Workspace>> GetAllWithDetailsAsync();
+    Task<Workspace?> GetByIdWithDetailsAsync(int id);
 }

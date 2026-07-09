@@ -10,19 +10,22 @@ public class AdminService : IAdminService
     private readonly IProjectRepository _projectRepository;
     private readonly IRequestRepository _requestRepository;
     private readonly ITaskRepository _taskRepository;
+    private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
 
     public AdminService(
         IUserRepository userRepository,
         IWorkspaceRepository workspaceRepository,
         IProjectRepository projectRepository,
         IRequestRepository requestRepository,
-        ITaskRepository taskRepository)
+        ITaskRepository taskRepository,
+        IWorkspaceMemberRepository workspaceMemberRepository)
     {
         _userRepository = userRepository;
         _workspaceRepository = workspaceRepository;
         _projectRepository = projectRepository;
         _requestRepository = requestRepository;
         _taskRepository = taskRepository;
+        _workspaceMemberRepository = workspaceMemberRepository;
     }
 
     public async Task<AdminStatsDto> GetStatsAsync()
@@ -174,5 +177,171 @@ public class AdminService : IAdminService
             })
             .OrderByDescending(w => w.CompletedHours)
             .ToList();
+    }
+
+    public async Task<AdminUserDetailsDto?> GetUserDetailsAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return null;
+
+        var workspaceMembers = await _workspaceMemberRepository.GetAllByClientAsync(userId);
+
+        var workspaces = workspaceMembers.Select(wm => new AdminUserWorkspaceDto
+        {
+            Id = wm.Workspace.Id,
+            Name = wm.Workspace.Name,
+            ProjectCount = wm.Workspace.Projects.Count,
+            MemberCount = wm.Workspace.Members.Count,
+            CreatedAt = wm.Workspace.CreatedAt,
+        }).ToList();
+
+        var projects = workspaceMembers
+            .SelectMany(wm => wm.Workspace.Projects)
+            .Select(p => {
+                var estimated = p.Tasks.Sum(t => t.EstimatedHours);
+                var completed = p.Tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
+                var pct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+                return new AdminUserProjectDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    EstimatedHours = estimated,
+                    CompletedHours = completed,
+                    TaskCount = p.Tasks.Count,
+                    DoneTaskCount = p.Tasks.Count(t => t.Status == Domain.Enums.TaskStatus.Done),
+                    Pct = pct,
+                };
+            }).ToList();
+
+        return new AdminUserDetailsDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Type = user is Domain.Entities.Client ? "CLIENT" : "ADMIN",
+            IsSuperAdmin = user is Domain.Entities.Admin admin && admin.IsSuperAdmin,
+            CreatedAt = user.CreatedAt,
+            Company = user is Domain.Entities.Client client ? client.Company : null,
+            Phone = user is Domain.Entities.Client c ? c.Phone : null,
+            Workspaces = workspaces,
+            Projects = projects,
+        };
+    }
+    public async Task<List<AdminWorkspaceDto>> GetWorkspacesAsync()
+    {
+        var workspaces = await _workspaceRepository.GetAllWithDetailsAsync();
+
+        return workspaces.Select(w =>
+        {
+            var totalEstimated = w.Projects
+                .SelectMany(p => p.Tasks)
+                .Sum(t => t.EstimatedHours);
+
+            var totalCompleted = w.Projects
+                .SelectMany(p => p.Tasks)
+                .SelectMany(t => t.TimeEntries)
+                .Sum(te => te.Hours);
+
+            var pct = totalEstimated == 0 ? 0 :
+                (int)Math.Round((totalCompleted / totalEstimated) * 100);
+
+            var totalTasks = w.Projects
+                .SelectMany(p => p.Tasks)
+                .Count();
+
+            var owner = w.Members
+                .FirstOrDefault(m => m.Role.Name == "Owner");
+
+            return new AdminWorkspaceDto
+            {
+                Id = w.Id,
+                Name = w.Name,
+                CreatedAt = w.CreatedAt,
+                ProjectCount = w.Projects.Count,
+                TotalTaskCount = totalTasks,
+                MemberCount = w.Members.Count,
+                CompletionPct = pct,
+                OwnerName = owner?.Client.Name ?? "—",
+                OwnerEmail = owner?.Client.Email ?? "—",
+            };
+        }).ToList();
+    }
+
+    public async Task<AdminWorkspaceDetailsDto?> GetWorkspaceDetailsAsync(int workspaceId)
+    {
+        var w = await _workspaceRepository.GetByIdWithDetailsAsync(workspaceId);
+        if (w == null) return null;
+
+        var totalEstimated = w.Projects.SelectMany(p => p.Tasks).Sum(t => t.EstimatedHours);
+        var totalCompleted = w.Projects.SelectMany(p => p.Tasks).SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
+        var pct = totalEstimated == 0 ? 0 : (int)Math.Round((totalCompleted / totalEstimated) * 100);
+
+        var projects = w.Projects.Select(p =>
+        {
+            var estimated = p.Tasks.Sum(t => t.EstimatedHours);
+            var completed = p.Tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
+            var projectPct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+
+            return new AdminWorkspaceProjectDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                CompletionPct = projectPct,
+                CompletedHours = completed,
+                EstimatedHours = estimated,
+                DoneTaskCount = p.Tasks.Count(t => t.Status == Domain.Enums.TaskStatus.Done),
+                InProgressTaskCount = p.Tasks.Count(t => t.Status == Domain.Enums.TaskStatus.InProgress),
+                TodoTaskCount = p.Tasks.Count(t => t.Status == Domain.Enums.TaskStatus.Todo),
+            };
+        }).ToList();
+
+        var members = w.Members.Select(m => new AdminWorkspaceMemberDto
+        {
+            ClientId = m.ClientId,
+            Name = m.Client.Name,
+            Email = m.Client.Email,
+            RoleName = m.Role.Name,
+        }).ToList();
+
+        return new AdminWorkspaceDetailsDto
+        {
+            Id = w.Id,
+            Name = w.Name,
+            CreatedAt = w.CreatedAt,
+            ProjectCount = w.Projects.Count,
+            TotalTaskCount = w.Projects.SelectMany(p => p.Tasks).Count(),
+            TotalCompletedHours = totalCompleted,
+            TotalEstimatedHours = totalEstimated,
+            MemberCount = w.Members.Count,
+            CompletionPct = pct,
+            Projects = projects,
+            Members = members,
+        };
+    }
+
+    public async Task<List<AdminProjectDto>> GetProjectsAsync()
+    {
+        var projects = await _projectRepository.GetAllWithDetailsAsync();
+
+        return projects.Select(p =>
+        {
+            var estimated = p.Tasks.Sum(t => t.EstimatedHours);
+            var completed = p.Tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
+            var pct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+
+            return new AdminProjectDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                WorkspaceId = p.WorkspaceId,
+                WorkspaceName = p.Workspace.Name,
+                CreatedAt = p.CreatedAt,
+                CompletionPct = pct,
+                CompletedHours = completed,
+                EstimatedHours = estimated,
+                TaskCount = p.Tasks.Count,
+                DoneTaskCount = p.Tasks.Count(t => t.Status == Domain.Enums.TaskStatus.Done),
+            };
+        }).ToList();
     }
 }

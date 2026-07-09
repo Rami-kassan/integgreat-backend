@@ -62,4 +62,29 @@ public class WorkspaceRepository : IWorkspaceRepository
             await _context.SaveChangesAsync();
         }
     }
+    public async Task<List<Workspace>> GetAllWithDetailsAsync()
+    {
+        return await _context.Workspaces
+            .Include(w => w.Projects)
+                .ThenInclude(p => p.Tasks)
+                    .ThenInclude(t => t.TimeEntries)
+            .Include(w => w.Members)
+                .ThenInclude(m => m.Client)
+            .Include(w => w.Members)
+                .ThenInclude(m => m.Role)
+            .ToListAsync();
+    }
+
+    public async Task<Workspace?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _context.Workspaces
+            .Include(w => w.Projects)
+                .ThenInclude(p => p.Tasks)
+                    .ThenInclude(t => t.TimeEntries)
+            .Include(w => w.Members)
+                .ThenInclude(m => m.Client)
+            .Include(w => w.Members)
+                .ThenInclude(m => m.Role)
+            .FirstOrDefaultAsync(w => w.Id == id);
+    }
 }

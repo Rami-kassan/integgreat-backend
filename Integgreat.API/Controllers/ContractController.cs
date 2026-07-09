@@ -1,4 +1,6 @@
-﻿using Integgreat.API.Middleware;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Integgreat.API.Middleware;
 using Integgreat.Application.DTOs.Contract;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
@@ -16,15 +18,18 @@ public class ContractController : ControllerBase
     private readonly IContractService _contractService;
     private readonly IProjectService _projectService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IConfiguration _configuration;
 
     public ContractController(
     IContractService contractService,
     IProjectService projectService,
-    IWorkspaceService workspaceService)
+    IWorkspaceService workspaceService,
+    IConfiguration configuration)
     {
         _contractService = contractService;
         _projectService = projectService;
         _workspaceService = workspaceService;
+        _configuration = configuration;
     }
 
     [HttpGet("project/{projectId}")]
@@ -95,5 +100,42 @@ public class ContractController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpPost("upload")]
+    [SuperAdmin]
+    public async Task<IActionResult> UploadFile(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file provided.");
+
+        if (!file.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("Only PDF files are allowed.");
+
+        var cloudinary = new Cloudinary(new Account(
+            _configuration["Cloudinary:CloudName"],
+            _configuration["Cloudinary:ApiKey"],
+            _configuration["Cloudinary:ApiSecret"]
+        ));
+
+        using var stream = file.OpenReadStream();
+        var uploadParams = new AutoUploadParams
+        {
+            File = new FileDescription(file.FileName, stream),
+            Folder = "integgreat/contracts",
+            PublicId = $"{Guid.NewGuid()}_{Path.GetFileNameWithoutExtension(file.FileName)}",
+            AccessMode = "public",
+        };
+
+        var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+        if (uploadResult.Error != null)
+            return BadRequest(uploadResult.Error.Message);
+
+        return Ok(new
+        {
+            fileName = file.FileName,
+            fileUrl = uploadResult.SecureUrl.ToString()
+        });
     }
 }
