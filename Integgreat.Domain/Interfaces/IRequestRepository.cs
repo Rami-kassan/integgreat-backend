@@ -11,4 +11,5 @@ public interface IRequestRepository
     Task UpdateAsync(Request request);
     Task<List<Request>> GetAllAsync();
     Task<List<Request>> GetRecentAsync(int count);
+    Task<List<Request>> GetAllWithDetailsAsync();
 }

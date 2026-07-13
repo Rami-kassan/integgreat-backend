@@ -55,4 +55,13 @@ public class RequestRepository : IRequestRepository
             .Take(count)
             .ToListAsync();
     }
+    public async Task<List<Request>> GetAllWithDetailsAsync()
+    {
+        return await _context.Requests
+            .Include(r => r.Client)
+            .Include(r => r.Project)
+                .ThenInclude(p => p.Workspace)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
 }

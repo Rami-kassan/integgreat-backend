@@ -344,4 +344,23 @@ public class AdminService : IAdminService
             };
         }).ToList();
     }
+    public async Task<List<AdminRequestDto>> GetAllRequestsAsync()
+    {
+        var requests = await _requestRepository.GetAllWithDetailsAsync();
+
+        return requests.Select(r => new AdminRequestDto
+        {
+            Id = r.Id,
+            Type = r.Type.ToString(),
+            Description = r.Description,
+            Status = r.Status.ToString(),
+            CreatedAt = r.CreatedAt,
+            ClientId = r.ClientId,
+            ClientName = r.Client.Name,
+            ClientEmail = r.Client.Email,
+            ProjectId = r.ProjectId,
+            ProjectName = r.Project.Name,
+            WorkspaceName = r.Project.Workspace.Name,
+        }).ToList();
+    }
 }

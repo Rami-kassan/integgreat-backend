@@ -106,4 +106,12 @@ public class AdminController : ControllerBase
         var data = await _adminService.GetProjectsAsync();
         return Ok(data);
     }
+
+    [HttpGet("requests")]
+    [SuperAdmin]
+    public async Task<IActionResult> GetAllRequests()
+    {
+        var data = await _adminService.GetAllRequestsAsync();
+        return Ok(data);
+    }
 }
