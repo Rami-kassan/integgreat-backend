@@ -40,4 +40,24 @@ public class ContractRepository : IContractRepository
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<Contract>> GetAllWithDetailsAsync()
+    {
+        return await _context.Contracts
+            .Include(c => c.Project)
+                .ThenInclude(p => p.Workspace)
+                    .ThenInclude(w => w.Members)
+                        .ThenInclude(m => m.Client)
+            .Include(c => c.Project)
+                .ThenInclude(p => p.Workspace)
+                    .ThenInclude(w => w.Members)
+                        .ThenInclude(m => m.Role)
+            .OrderByDescending(c => c.UploadedAt)
+            .ToListAsync();
+    }
+    public async Task<Contract?> GetByIdAsync(int id)
+    {
+        return await _context.Contracts
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
 }

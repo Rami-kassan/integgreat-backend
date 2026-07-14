@@ -11,6 +11,7 @@ public class AdminService : IAdminService
     private readonly IRequestRepository _requestRepository;
     private readonly ITaskRepository _taskRepository;
     private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
+    private readonly IContractRepository _contractRepository;
 
     public AdminService(
         IUserRepository userRepository,
@@ -18,7 +19,8 @@ public class AdminService : IAdminService
         IProjectRepository projectRepository,
         IRequestRepository requestRepository,
         ITaskRepository taskRepository,
-        IWorkspaceMemberRepository workspaceMemberRepository)
+        IWorkspaceMemberRepository workspaceMemberRepository,
+        IContractRepository contractRepository)
     {
         _userRepository = userRepository;
         _workspaceRepository = workspaceRepository;
@@ -26,6 +28,7 @@ public class AdminService : IAdminService
         _requestRepository = requestRepository;
         _taskRepository = taskRepository;
         _workspaceMemberRepository = workspaceMemberRepository;
+        _contractRepository = contractRepository;
     }
 
     public async Task<AdminStatsDto> GetStatsAsync()
@@ -341,6 +344,49 @@ public class AdminService : IAdminService
                 EstimatedHours = estimated,
                 TaskCount = p.Tasks.Count,
                 DoneTaskCount = p.Tasks.Count(t => t.Status == Domain.Enums.TaskStatus.Done),
+            };
+        }).ToList();
+    }
+    public async Task<List<AdminRequestDto>> GetAllRequestsAsync()
+    {
+        var requests = await _requestRepository.GetAllWithDetailsAsync();
+
+        return requests.Select(r => new AdminRequestDto
+        {
+            Id = r.Id,
+            Type = r.Type.ToString(),
+            Description = r.Description,
+            Status = r.Status.ToString(),
+            CreatedAt = r.CreatedAt,
+            ClientId = r.ClientId,
+            ClientName = r.Client.Name,
+            ClientEmail = r.Client.Email,
+            ProjectId = r.ProjectId,
+            ProjectName = r.Project.Name,
+            WorkspaceName = r.Project.Workspace.Name,
+        }).ToList();
+    }
+
+    public async Task<List<AdminContractDto>> GetAllContractsAsync()
+    {
+        var contracts = await _contractRepository.GetAllWithDetailsAsync();
+
+        return contracts.Select(c =>
+        {
+            var owner = c.Project.Workspace.Members
+                .FirstOrDefault(m => m.Role.Name == "Owner");
+
+            return new AdminContractDto
+            {
+                Id = c.Id,
+                FileName = c.FileName,
+                FilePath = c.FilePath,
+                IsActive = c.IsActive,
+                UploadedAt = c.UploadedAt,
+                ProjectId = c.ProjectId,
+                ProjectName = c.Project.Name,
+                WorkspaceName = c.Project.Workspace.Name,
+                ClientName = owner?.Client.Name ?? "—",
             };
         }).ToList();
     }

@@ -45,4 +45,10 @@ public class ContractService : IContractService
         await _contractRepository.AddAsync(contract);
         return _mapper.Map<ContractResponseDto>(contract);
     }
+    public async Task<ContractResponseDto?> GetByIdAsync(int id)
+    {
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return null;
+        return _mapper.Map<ContractResponseDto>(contract);
+    }
 }

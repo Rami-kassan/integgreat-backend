@@ -15,4 +15,6 @@ public interface IAdminService
     Task<List<AdminWorkspaceDto>> GetWorkspacesAsync();
     Task<AdminWorkspaceDetailsDto?> GetWorkspaceDetailsAsync(int workspaceId);
     Task<List<AdminProjectDto>> GetProjectsAsync();
+    Task<List<AdminRequestDto>> GetAllRequestsAsync();
+    Task<List<AdminContractDto>> GetAllContractsAsync();
 }
