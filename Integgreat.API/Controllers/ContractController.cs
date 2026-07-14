@@ -7,6 +7,7 @@ using Integgreat.Application.Services.Impl;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Supabase;
 
 namespace Integgreat.API.Controllers;
 
@@ -112,30 +113,52 @@ public class ContractController : ControllerBase
         if (!file.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
             return BadRequest("Only PDF files are allowed.");
 
-        var cloudinary = new Cloudinary(new Account(
-            _configuration["Cloudinary:CloudName"],
-            _configuration["Cloudinary:ApiKey"],
-            _configuration["Cloudinary:ApiSecret"]
-        ));
+        var supabaseUrl = _configuration["Supabase:Url"]!;
+        var supabaseKey = _configuration["Supabase:ServiceRoleKey"]!;
+        var bucketName = _configuration["Supabase:BucketName"]!;
 
-        using var stream = file.OpenReadStream();
-        var uploadParams = new AutoUploadParams
-        {
-            File = new FileDescription(file.FileName, stream),
-            Folder = "integgreat/contracts",
-            PublicId = $"{Guid.NewGuid()}_{Path.GetFileNameWithoutExtension(file.FileName)}",
-            AccessMode = "public",
-        };
+        var supabase = new Supabase.Client(supabaseUrl, supabaseKey);
+        await supabase.InitializeAsync();
 
-        var uploadResult = await cloudinary.UploadAsync(uploadParams);
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        var fileBytes = memoryStream.ToArray();
 
-        if (uploadResult.Error != null)
-            return BadRequest(uploadResult.Error.Message);
+        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+
+        await supabase.Storage
+            .From(bucketName)
+            .Upload(fileBytes, fileName, new Supabase.Storage.FileOptions
+            {
+                ContentType = "application/pdf",
+                Upsert = false,
+            });
 
         return Ok(new
         {
             fileName = file.FileName,
-            fileUrl = uploadResult.SecureUrl.ToString()
+            filePath = fileName
         });
     }
+
+[HttpGet("{id}/download")]
+[Authorize]
+public async Task<IActionResult> GetDownloadUrl(int id)
+{
+    var contract = await _contractService.GetByIdAsync(id);
+    if (contract == null) return NotFound();
+
+    var supabaseUrl = _configuration["Supabase:Url"]!;
+    var supabaseKey = _configuration["Supabase:ServiceRoleKey"]!;
+    var bucketName = _configuration["Supabase:BucketName"]!;
+
+    var supabase = new Supabase.Client(supabaseUrl, supabaseKey);
+    await supabase.InitializeAsync();
+
+    var signedUrl = await supabase.Storage
+        .From(bucketName)
+        .CreateSignedUrl(contract.FilePath, 1800);
+
+    return Ok(new { url = signedUrl });
+}
 }

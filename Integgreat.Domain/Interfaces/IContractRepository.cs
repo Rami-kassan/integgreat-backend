@@ -9,4 +9,5 @@ public interface IContractRepository
     Task AddAsync(Contract contract);
     Task UpdateAsync(Contract contract);
     Task<List<Contract>> GetAllWithDetailsAsync();
+    Task<Contract?> GetByIdAsync(int id);
 }

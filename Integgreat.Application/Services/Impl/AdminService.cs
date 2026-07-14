@@ -380,7 +380,7 @@ public class AdminService : IAdminService
             {
                 Id = c.Id,
                 FileName = c.FileName,
-                FileUrl = c.FileUrl,
+                FilePath = c.FilePath,
                 IsActive = c.IsActive,
                 UploadedAt = c.UploadedAt,
                 ProjectId = c.ProjectId,

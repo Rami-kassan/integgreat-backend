@@ -55,4 +55,9 @@ public class ContractRepository : IContractRepository
             .OrderByDescending(c => c.UploadedAt)
             .ToListAsync();
     }
+    public async Task<Contract?> GetByIdAsync(int id)
+    {
+        return await _context.Contracts
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
 }

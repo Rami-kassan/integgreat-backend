@@ -7,4 +7,5 @@ public interface IContractService
     Task<List<ContractResponseDto>> GetAllByProjectAsync(int projectId);
     Task<ContractResponseDto?> GetActiveByProjectAsync(int projectId);
     Task<ContractResponseDto> UploadAsync(ContractRequestDto dto);
+    Task<ContractResponseDto?> GetByIdAsync(int id);
 }
