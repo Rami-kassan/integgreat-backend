@@ -69,19 +69,12 @@ public class WorkspaceMemberController : ControllerBase
     [Authorize]
     public async Task<IActionResult> UpdateRole(int clientId, int workspaceId, [FromBody] int roleId)
     {
-        try
-        {
-            // Vérifie que le user connecté est Owner de CE workspace
-            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var isOwner = await _workspaceMemberService.IsOwnerOfWorkspaceAsync(currentUserId, workspaceId);
-            if (!isOwner) return Forbid();
+        // Vérifie que le user connecté est Owner de CE workspace
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var isOwner = await _workspaceMemberService.IsOwnerOfWorkspaceAsync(currentUserId, workspaceId);
+        if (!isOwner) return Forbid();
 
-            await _workspaceMemberService.UpdateRoleAsync(clientId, workspaceId, roleId);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _workspaceMemberService.UpdateRoleAsync(clientId, workspaceId, roleId);
+        return Ok();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Workspace;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 using Task = System.Threading.Tasks.Task;
@@ -70,7 +71,7 @@ public class WorkspaceService : IWorkspaceService
     public async Task<WorkspaceResponseDto> UpdateAsync(int id, WorkspaceRequestDto dto)
     {
         var workspace = await _workspaceRepository.GetByIdAsync(id);
-        if (workspace == null) throw new Exception("Workspace not found");
+        if (workspace == null) throw new NotFoundException("Workspace not found");
         _mapper.Map(dto, workspace);
         await _workspaceRepository.UpdateAsync(workspace);
         return _mapper.Map<WorkspaceResponseDto>(workspace);
@@ -84,6 +85,8 @@ public class WorkspaceService : IWorkspaceService
 
     public async Task DeleteAsync(int id)
     {
+        var workspace = await _workspaceRepository.GetByIdAsync(id);
+        if (workspace == null) throw new NotFoundException("Workspace not found");
         await _workspaceRepository.DeleteAsync(id);
     }
 }

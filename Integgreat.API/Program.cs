@@ -1,3 +1,4 @@
+using Integgreat.API.Middleware;
 using Integgreat.Application.Mappings;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
@@ -31,7 +32,8 @@ builder.Services.Configure<FormOptions>(options =>
 // DATABASE
 // ═══════════════════════════════
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"),
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
 
 // ═══════════════════════════════
 // REPOSITORIES
@@ -99,6 +101,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

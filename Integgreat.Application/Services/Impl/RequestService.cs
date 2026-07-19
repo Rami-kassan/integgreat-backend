@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Request;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Enums;
 using Integgreat.Domain.Interfaces;
@@ -40,7 +41,7 @@ public class RequestService : IRequestService
     public async Task<RequestResponseDto> UpdateStatusAsync(int id, RequestStatus status)
     {
         var request = await _requestRepository.GetByIdAsync(id);
-        if (request == null) throw new Exception("Request not found");
+        if (request == null) throw new NotFoundException("Request not found");
         request.Status = status;
         await _requestRepository.UpdateAsync(request);
         return _mapper.Map<RequestResponseDto>(request);

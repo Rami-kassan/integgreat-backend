@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Role;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Enums;
 using Integgreat.Domain.Interfaces;
@@ -57,8 +58,8 @@ public class RoleService : IRoleService
     public async Task UpdatePermissionsAsync(int roleId, List<string> permissions)
     {
         var role = await _roleRepository.GetByIdWithPermissionsAsync(roleId);
-        if (role == null) throw new Exception("Role not found");
-        if (role.WorkspaceId == null) throw new Exception("Cannot modify global roles");
+        if (role == null) throw new NotFoundException("Role not found");
+        if (role.WorkspaceId == null) throw new ValidationAppException("Cannot modify global roles");
 
         // Remplace toutes les permissions
         role.RolePermissions.Clear();

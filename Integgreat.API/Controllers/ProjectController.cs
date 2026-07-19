@@ -74,30 +74,16 @@ public class ProjectController : ControllerBase
     [SuperAdmin]
     public async Task<IActionResult> Create([FromBody] ProjectRequestDto dto)
     {
-        try
-        {
-            var result = await _projectService.CreateAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _projectService.CreateAsync(dto);
+        return Ok(result);
     }
 
     [HttpPut("{id}")]
     [SuperAdmin]
     public async Task<IActionResult> Update(int id, [FromBody] ProjectRequestDto dto)
     {
-        try
-        {
-            var result = await _projectService.UpdateAsync(id, dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _projectService.UpdateAsync(id, dto);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]

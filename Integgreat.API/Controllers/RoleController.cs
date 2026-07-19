@@ -35,29 +35,15 @@ public class RoleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Create([FromBody] RoleRequestDto dto)
     {
-        try
-        {
-            var result = await _roleService.CreateAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _roleService.CreateAsync(dto);
+        return Ok(result);
     }
 
     [HttpPut("{id}/permissions")]
     [Authorize]
     public async Task<IActionResult> UpdatePermissions(int id, [FromBody] List<string> permissions)
     {
-        try
-        {
-            await _roleService.UpdatePermissionsAsync(id, permissions);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _roleService.UpdatePermissionsAsync(id, permissions);
+        return Ok();
     }
 }
