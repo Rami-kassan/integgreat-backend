@@ -153,7 +153,7 @@ public class AdminService : IAdminService
             .SelectMany(p => p.Tasks)
             .Sum(t => t.EstimatedHours);
 
-        var pct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+        var pct = estimated == 0 ? 0 : Math.Max(0, (int)Math.Round((completed / estimated) * 100));
 
         return new AdminHoursSummaryDto
         {
@@ -203,7 +203,7 @@ public class AdminService : IAdminService
             .Select(p => {
                 var estimated = p.Tasks.Sum(t => t.EstimatedHours);
                 var completed = p.Tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
-                var pct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+                var pct = estimated == 0 ? 0 : Math.Max(0, (int)Math.Round((completed / estimated) * 100));
                 return new AdminUserProjectDto
                 {
                     Id = p.Id,
@@ -246,7 +246,7 @@ public class AdminService : IAdminService
                 .Sum(te => te.Hours);
 
             var pct = totalEstimated == 0 ? 0 :
-                (int)Math.Round((totalCompleted / totalEstimated) * 100);
+                Math.Max(0, (int)Math.Round((totalCompleted / totalEstimated) * 100));
 
             var totalTasks = w.Projects
                 .SelectMany(p => p.Tasks)
@@ -277,13 +277,13 @@ public class AdminService : IAdminService
 
         var totalEstimated = w.Projects.SelectMany(p => p.Tasks).Sum(t => t.EstimatedHours);
         var totalCompleted = w.Projects.SelectMany(p => p.Tasks).SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
-        var pct = totalEstimated == 0 ? 0 : (int)Math.Round((totalCompleted / totalEstimated) * 100);
+        var pct = totalEstimated == 0 ? 0 : Math.Max(0, (int)Math.Round((totalCompleted / totalEstimated) * 100));
 
         var projects = w.Projects.Select(p =>
         {
             var estimated = p.Tasks.Sum(t => t.EstimatedHours);
             var completed = p.Tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
-            var projectPct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+            var projectPct = estimated == 0 ? 0 : Math.Max(0, (int)Math.Round((completed / estimated) * 100));
 
             return new AdminWorkspaceProjectDto
             {
@@ -330,7 +330,7 @@ public class AdminService : IAdminService
         {
             var estimated = p.Tasks.Sum(t => t.EstimatedHours);
             var completed = p.Tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
-            var pct = estimated == 0 ? 0 : (int)Math.Round((completed / estimated) * 100);
+            var pct = estimated == 0 ? 0 : Math.Max(0, (int)Math.Round((completed / estimated) * 100));
 
             return new AdminProjectDto
             {
