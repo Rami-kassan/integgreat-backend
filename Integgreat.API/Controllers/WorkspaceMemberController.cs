@@ -1,7 +1,9 @@
-﻿using Integgreat.API.Middleware;
+﻿using Integgreat.API.Helpers;
+using Integgreat.API.Middleware;
 using Integgreat.Application.DTOs.Workspace;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
+using Integgreat.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -15,13 +17,16 @@ public class WorkspaceMemberController : ControllerBase
 {
     private readonly IWorkspaceMemberService _workspaceMemberService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly PermissionHelper _permissionHelper;
 
     public WorkspaceMemberController(
         IWorkspaceMemberService workspaceMemberService,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        PermissionHelper permissionHelper)
     {
         _workspaceMemberService = workspaceMemberService;
         _workspaceService = workspaceService;
+        _permissionHelper = permissionHelper;
     }
 
     [HttpGet("workspace/{workspaceId}")]
@@ -43,6 +48,9 @@ public class WorkspaceMemberController : ControllerBase
             var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, workspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewMembers", workspaceId);
+            if (!hasPermission) return Forbid();
 
             var members = await _workspaceMemberService.GetAllByWorkspaceAsync(workspaceId);
             return Ok(members);
@@ -71,10 +79,8 @@ public class WorkspaceMemberController : ControllerBase
     {
         try
         {
-            // Vérifie que le user connecté est Owner de CE workspace
-            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var isOwner = await _workspaceMemberService.IsOwnerOfWorkspaceAsync(currentUserId, workspaceId);
-            if (!isOwner) return Forbid();
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ManageMembers", workspaceId);
+            if (!hasPermission) return Forbid();
 
             await _workspaceMemberService.UpdateRoleAsync(clientId, workspaceId, roleId);
             return Ok();

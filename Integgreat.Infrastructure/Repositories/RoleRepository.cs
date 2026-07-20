@@ -69,4 +69,11 @@ public class RoleRepository : IRoleRepository
         _context.Roles.Update(role);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<int?> GetWorkspaceIdByRoleIdAsync(int roleId)
+    {
+        var role = await _context.Roles
+            .FirstOrDefaultAsync(r => r.Id == roleId);
+        return role?.WorkspaceId;
+    }
 }

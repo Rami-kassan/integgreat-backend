@@ -1,4 +1,5 @@
-﻿using Integgreat.API.Middleware;
+﻿using Integgreat.API.Helpers;
+using Integgreat.API.Middleware;
 using Integgreat.Application.DTOs.Task;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
@@ -16,16 +17,19 @@ public class TaskController : ControllerBase
     private readonly ITaskService _taskService;
     private readonly IProjectService _projectService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly PermissionHelper _permissionHelper;
 
     public TaskController(
     ITaskService taskService,
     IProjectService projectService,
-    IWorkspaceService workspaceService)
-{
-    _taskService = taskService;
-    _projectService = projectService;
-    _workspaceService = workspaceService;
-}
+    IWorkspaceService workspaceService,
+    PermissionHelper permissionHelper)
+    {
+        _taskService = taskService;
+        _projectService = projectService;
+        _workspaceService = workspaceService;
+        _permissionHelper = permissionHelper;
+    }
 
     [HttpGet("project/{projectId}")]
     public async Task<IActionResult> GetAllByProject(int projectId)
@@ -45,6 +49,9 @@ public class TaskController : ControllerBase
             var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewTask", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
 
             var tasks = await _taskService.GetAllByProjectAsync(projectId);
             return Ok(tasks);
@@ -72,6 +79,9 @@ public class TaskController : ControllerBase
 
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewTask", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
 
             return Ok(task);
         }

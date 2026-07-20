@@ -31,10 +31,10 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new Exception("User not found");
 
-        var permissions = new List<string>();
+        var permissions = new Dictionary<int, List<string>>();
         if (user is Client)
         {
-            permissions = await _userRepository.GetClientPermissionsAsync(userId);
+            permissions = await _userRepository.GetClientPermissionsByWorkspaceAsync(userId);
         }
 
         return new MeResponseDto

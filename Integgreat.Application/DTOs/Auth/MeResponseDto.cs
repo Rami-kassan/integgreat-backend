@@ -7,5 +7,5 @@ public class MeResponseDto
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public bool IsSuperAdmin { get; set; }
-    public List<string> Permissions { get; set; } = new();
+    public Dictionary<int, List<string>> Permissions { get; set; } = new();
 }

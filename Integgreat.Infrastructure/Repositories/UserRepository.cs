@@ -54,4 +54,20 @@ public class UserRepository : IUserRepository
             .Take(count)
             .ToListAsync();
     }
+
+    public async Task<Dictionary<int, List<string>>> GetClientPermissionsByWorkspaceAsync(int clientId)
+    {
+        var members = await _context.WorkspaceMembers
+            .Include(wm => wm.Role)
+                .ThenInclude(r => r.RolePermissions)
+            .Where(wm => wm.ClientId == clientId)
+            .ToListAsync();
+
+        return members.ToDictionary(
+            wm => wm.WorkspaceId,
+            wm => wm.Role.RolePermissions
+                .Select(rp => rp.Permission.ToString())
+                .ToList()
+        );
+    }
 }

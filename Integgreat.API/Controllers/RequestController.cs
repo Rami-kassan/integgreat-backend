@@ -1,4 +1,5 @@
-﻿using Integgreat.API.Middleware;
+﻿using Integgreat.API.Helpers;
+using Integgreat.API.Middleware;
 using Integgreat.Application.DTOs.Request;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
@@ -17,15 +18,18 @@ public class RequestController : ControllerBase
     private readonly IRequestService _requestService;
     private readonly IProjectService _projectService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly PermissionHelper _permissionHelper;
 
     public RequestController(
         IRequestService requestService,
         IProjectService projectService,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        PermissionHelper permissionHelper)
     {
         _requestService = requestService;
         _projectService = projectService;
         _workspaceService = workspaceService;
+        _permissionHelper = permissionHelper;
     }
 
     [HttpGet("project/{projectId}")]
@@ -47,6 +51,9 @@ public class RequestController : ControllerBase
             var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewRequest", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
 
             var requests = await _requestService.GetAllByProjectAsync(projectId);
             return Ok(requests);
@@ -76,6 +83,9 @@ public class RequestController : ControllerBase
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
 
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewRequest", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
+
             return Ok(request);
         }
     }
@@ -97,6 +107,9 @@ public class RequestController : ControllerBase
             var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "CreateRequest", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
         }
 
         try

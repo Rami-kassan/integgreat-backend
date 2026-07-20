@@ -8,4 +8,5 @@ public interface IRoleService
     Task<List<RoleResponseDto>> GetAllByWorkspaceIncludingGlobalAsync(int workspaceId);
     Task<RoleResponseDto> CreateAsync(RoleRequestDto dto);
     Task UpdatePermissionsAsync(int roleId, List<string> permissions);
+    Task<int?> GetWorkspaceIdByRoleIdAsync(int roleId);
 }
