@@ -8,6 +8,7 @@ public interface ITaskService
     Task<List<TaskResponseDto>> GetAllByProjectAsync(int projectId);
     Task<TaskResponseDto?> GetByIdAsync(int id);
     Task<TaskResponseDto> CreateAsync(TaskRequestDto dto);
+    Task<TaskResponseDto> UpdateAsync(int id, TaskRequestDto dto);
     Task<TaskResponseDto> UpdateStatusAsync(int id, TaskStatus status);
     Task DeleteAsync(int id);
 }

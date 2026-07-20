@@ -43,10 +43,10 @@ public class AuthController : ControllerBase
 
     [HttpGet("me")]
     [Authorize]
-    public async Task<IActionResult> Me()
+    public async Task<IActionResult> Me([FromQuery] int? workspaceId)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var result = await _authService.GetMeAsync(userId);
+        var result = await _authService.GetMeAsync(userId, workspaceId);
         return Ok(result);
     }
 }

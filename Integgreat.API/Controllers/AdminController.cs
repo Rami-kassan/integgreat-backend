@@ -107,6 +107,14 @@ public class AdminController : ControllerBase
         return Ok(data);
     }
 
+    [HttpGet("tasks")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> GetAllTasks()
+    {
+        var data = await _adminService.GetAllTasksAsync();
+        return Ok(data);
+    }
+
     [HttpGet("requests")]
     [SuperAdmin]
     public async Task<IActionResult> GetAllRequests()

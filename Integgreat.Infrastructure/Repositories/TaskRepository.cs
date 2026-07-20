@@ -54,4 +54,13 @@ public class TaskRepository : ITaskRepository
     {
         return await _context.Tasks.ToListAsync();
     }
+
+    public async Task<List<ProjectTask>> GetAllWithDetailsAsync()
+    {
+        return await _context.Tasks
+            .Include(t => t.TimeEntries)
+            .Include(t => t.Project)
+                .ThenInclude(p => p.Workspace)
+            .ToListAsync();
+    }
 }

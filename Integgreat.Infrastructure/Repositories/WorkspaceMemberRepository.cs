@@ -45,6 +45,7 @@ public class WorkspaceMemberRepository : IWorkspaceMemberRepository
         return await _context.WorkspaceMembers
             .Include(wm => wm.Client)
             .Include(wm => wm.Role)
+                .ThenInclude(r => r.RolePermissions)
             .FirstOrDefaultAsync(wm => wm.ClientId == clientId && wm.WorkspaceId == workspaceId);
     }
 

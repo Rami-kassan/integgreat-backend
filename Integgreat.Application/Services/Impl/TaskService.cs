@@ -38,6 +38,17 @@ public class TaskService : ITaskService
         return _mapper.Map<TaskResponseDto>(task);
     }
 
+    public async Task<TaskResponseDto> UpdateAsync(int id, TaskRequestDto dto)
+    {
+        var task = await _taskRepository.GetByIdAsync(id);
+        if (task == null) throw new NotFoundException("Task not found");
+        task.Title = dto.Title;
+        task.Description = dto.Description;
+        task.EstimatedHours = dto.EstimatedHours;
+        await _taskRepository.UpdateAsync(task);
+        return _mapper.Map<TaskResponseDto>(task);
+    }
+
     public async Task<TaskResponseDto> UpdateStatusAsync(int id, TaskStatus status)
     {
         var task = await _taskRepository.GetByIdAsync(id);

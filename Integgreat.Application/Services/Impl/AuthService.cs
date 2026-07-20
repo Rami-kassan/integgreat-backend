@@ -14,12 +14,18 @@ namespace Integgreat.Application.Services.Impl;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
 
-    public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration)
+    public AuthService(
+        IUserRepository userRepository,
+        IWorkspaceMemberRepository workspaceMemberRepository,
+        IMapper mapper,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _workspaceMemberRepository = workspaceMemberRepository;
         _mapper = mapper;
         _configuration = configuration;
     }
@@ -27,7 +33,7 @@ public class AuthService : IAuthService
     // GET ME
     // ═══════════════════════════════
 
-    public async Task<MeResponseDto> GetMeAsync(int userId)
+    public async Task<MeResponseDto> GetMeAsync(int userId, int? workspaceId = null)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new NotFoundException("User not found");
@@ -35,7 +41,20 @@ public class AuthService : IAuthService
         var permissions = new List<string>();
         if (user is Client)
         {
-            permissions = await _userRepository.GetClientPermissionsAsync(userId);
+            if (workspaceId.HasValue)
+            {
+                // Permissions du rôle du client dans CE workspace uniquement.
+                var member = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(userId, workspaceId.Value);
+                permissions = member?.Role.RolePermissions
+                    .Select(rp => rp.Permission.ToString())
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+            }
+            else
+            {
+                // Pas de workspace précisé (ex: juste après le login) : union de tous les workspaces.
+                permissions = await _userRepository.GetClientPermissionsAsync(userId);
+            }
         }
 
         return new MeResponseDto

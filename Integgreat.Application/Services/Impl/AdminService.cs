@@ -347,6 +347,24 @@ public class AdminService : IAdminService
             };
         }).ToList();
     }
+    public async Task<List<AdminTaskDto>> GetAllTasksAsync()
+    {
+        var tasks = await _taskRepository.GetAllWithDetailsAsync();
+
+        return tasks.Select(t => new AdminTaskDto
+        {
+            Id = t.Id,
+            Title = t.Title,
+            Status = t.Status.ToString(),
+            EstimatedHours = t.EstimatedHours,
+            CompletedHours = t.CompletedHours,
+            ProjectId = t.ProjectId,
+            ProjectName = t.Project.Name,
+            WorkspaceId = t.Project.WorkspaceId,
+            WorkspaceName = t.Project.Workspace.Name,
+        }).ToList();
+    }
+
     public async Task<List<AdminRequestDto>> GetAllRequestsAsync()
     {
         var requests = await _requestRepository.GetAllWithDetailsAsync();
