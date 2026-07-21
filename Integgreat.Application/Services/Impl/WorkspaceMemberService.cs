@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Workspace;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 
@@ -45,18 +46,20 @@ public class WorkspaceMemberService : IWorkspaceMemberService
 
     public async Task RemoveMemberAsync(int clientId, int workspaceId)
     {
+        var member = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(clientId, workspaceId);
+        if (member == null) throw new NotFoundException("Member not found");
         await _workspaceMemberRepository.DeleteAsync(clientId, workspaceId);
     }
 
     public async Task UpdateRoleAsync(int clientId, int workspaceId, int roleId)
     {
         var member = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(clientId, workspaceId);
-        if (member == null) throw new Exception("Member not found");
+        if (member == null) throw new NotFoundException("Member not found");
 
         // Vérifie si le nouveau rôle est Owner
         var newRole = await _roleRepository.GetByIdAsync(roleId);
         if (newRole?.Name == "Owner")
-            throw new Exception("Cannot assign Owner role — a workspace can only have one Owner.");
+            throw new ValidationAppException("Cannot assign Owner role — a workspace can only have one Owner.");
 
         member.RoleId = roleId;
         await _workspaceMemberRepository.UpdateAsync(member);

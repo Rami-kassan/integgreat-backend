@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Project;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 namespace Integgreat.Application.Services.Impl;
@@ -56,7 +57,7 @@ public class ProjectService : IProjectService
     public async Task<ProjectResponseDto> UpdateAsync(int id, ProjectRequestDto dto)
     {
         var project = await _projectRepository.GetByIdAsync(id);
-        if (project == null) throw new Exception("Project not found");
+        if (project == null) throw new NotFoundException("Project not found");
         _mapper.Map(dto, project);
         await _projectRepository.UpdateAsync(project);
         return _mapper.Map<ProjectResponseDto>(project);
@@ -64,6 +65,8 @@ public class ProjectService : IProjectService
 
     public async Task DeleteAsync(int id)
     {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project == null) throw new NotFoundException("Project not found");
         await _projectRepository.DeleteAsync(id);
     }
 }

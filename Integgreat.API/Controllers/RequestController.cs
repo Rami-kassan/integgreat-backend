@@ -112,29 +112,15 @@ public class RequestController : ControllerBase
             if (!hasPermission) return Forbid();
         }
 
-        try
-        {
-            var result = await _requestService.CreateAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _requestService.CreateAsync(dto);
+        return Ok(result);
     }
 
     [HttpPut("{id}/status")]
     [SuperAdmin]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] RequestStatus status)
     {
-        try
-        {
-            var result = await _requestService.UpdateStatusAsync(id, status);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _requestService.UpdateStatusAsync(id, status);
+        return Ok(result);
     }
 }

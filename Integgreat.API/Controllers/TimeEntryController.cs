@@ -29,15 +29,8 @@ public class TimeEntryController : ControllerBase
     [SuperAdmin]
     public async Task<IActionResult> Log([FromBody] TimeEntryRequestDto dto)
     {
-        try
-        {
-            var result = await _timeEntryService.LogAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _timeEntryService.LogAsync(dto);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]

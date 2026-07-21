@@ -63,30 +63,16 @@ public class WorkspaceController : ControllerBase
     [SuperAdmin]
     public async Task<IActionResult> Create([FromBody] WorkspaceRequestDto dto)
     {
-        try
-        {
-            var result = await _workspaceService.CreateAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _workspaceService.CreateAsync(dto);
+        return Ok(result);
     }
 
     [HttpPut("{id}")]
     [SuperAdmin]
     public async Task<IActionResult> Update(int id, [FromBody] WorkspaceRequestDto dto)
     {
-        try
-        {
-            var result = await _workspaceService.UpdateAsync(id, dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _workspaceService.UpdateAsync(id, dto);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]

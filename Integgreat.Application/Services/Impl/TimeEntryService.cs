@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.TimeEntry;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 
@@ -31,6 +32,8 @@ public class TimeEntryService : ITimeEntryService
 
     public async Task DeleteAsync(int id)
     {
+        var timeEntry = await _timeEntryRepository.GetByIdAsync(id);
+        if (timeEntry == null) throw new NotFoundException("Time entry not found");
         await _timeEntryRepository.DeleteAsync(id);
     }
 }

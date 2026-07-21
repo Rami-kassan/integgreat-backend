@@ -32,7 +32,8 @@ builder.Services.Configure<FormOptions>(options =>
 // DATABASE
 // ═══════════════════════════════
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"),
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
 
 // ═══════════════════════════════
 // REPOSITORIES
@@ -101,6 +102,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

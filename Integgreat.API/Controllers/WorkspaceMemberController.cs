@@ -82,12 +82,7 @@ public class WorkspaceMemberController : ControllerBase
             var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ManageMembers", workspaceId);
             if (!hasPermission) return Forbid();
 
-            await _workspaceMemberService.UpdateRoleAsync(clientId, workspaceId, roleId);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _workspaceMemberService.UpdateRoleAsync(clientId, workspaceId, roleId);
+        return Ok();
     }
 }

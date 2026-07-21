@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Auth;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -13,12 +14,18 @@ namespace Integgreat.Application.Services.Impl;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
 
-    public AuthService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration)
+    public AuthService(
+        IUserRepository userRepository,
+        IWorkspaceMemberRepository workspaceMemberRepository,
+        IMapper mapper,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _workspaceMemberRepository = workspaceMemberRepository;
         _mapper = mapper;
         _configuration = configuration;
     }
@@ -26,10 +33,10 @@ public class AuthService : IAuthService
     // GET ME
     // ═══════════════════════════════
 
-    public async Task<MeResponseDto> GetMeAsync(int userId)
+    public async Task<MeResponseDto> GetMeAsync(int userId, int? workspaceId = null)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null) throw new Exception("User not found");
+        if (user == null) throw new NotFoundException("User not found");
 
         var permissions = new Dictionary<int, List<string>>();
         if (user is Client)
@@ -55,10 +62,10 @@ public class AuthService : IAuthService
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
     {
         var user = await _userRepository.GetByEmailAsync(dto.Email);
-        if (user == null) throw new Exception("Invalid credentials");
+        if (user == null) throw new UnauthorizedAppException("Invalid credentials");
 
         var isValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-        if (!isValid) throw new Exception("Invalid credentials");
+        if (!isValid) throw new UnauthorizedAppException("Invalid credentials");
 
         var token = GenerateToken(user);
 
@@ -79,7 +86,7 @@ public class AuthService : IAuthService
     public async Task<LoginResponseDto> RegisterClientAsync(ClientRegisterDto dto)
     {
         var existing = await _userRepository.GetByEmailAsync(dto.Email);
-        if (existing != null) throw new Exception("Email already exists");
+        if (existing != null) throw new ConflictException("Email already exists");
 
         var client = new Client
         {
@@ -110,7 +117,7 @@ public class AuthService : IAuthService
     public async Task<LoginResponseDto> RegisterAdminAsync(AdminRegisterDto dto)
     {
         var existing = await _userRepository.GetByEmailAsync(dto.Email);
-        if (existing != null) throw new Exception("Email already exists");
+        if (existing != null) throw new ConflictException("Email already exists");
 
         var admin = new Admin
         {

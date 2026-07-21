@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Task;
 using Integgreat.Application.DTOs.TimeEntry;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
 using TaskStatus = Integgreat.Domain.Enums.TaskStatus;
@@ -68,10 +69,21 @@ public class TaskService : ITaskService
         return _mapper.Map<TaskResponseDto>(task);
     }
 
+    public async Task<TaskResponseDto> UpdateAsync(int id, TaskRequestDto dto)
+    {
+        var task = await _taskRepository.GetByIdAsync(id);
+        if (task == null) throw new NotFoundException("Task not found");
+        task.Title = dto.Title;
+        task.Description = dto.Description;
+        task.EstimatedHours = dto.EstimatedHours;
+        await _taskRepository.UpdateAsync(task);
+        return _mapper.Map<TaskResponseDto>(task);
+    }
+
     public async Task<TaskResponseDto> UpdateStatusAsync(int id, TaskStatus status)
     {
         var task = await _taskRepository.GetByIdAsync(id);
-        if (task == null) throw new Exception("Task not found");
+        if (task == null) throw new NotFoundException("Task not found");
         task.Status = status;
         await _taskRepository.UpdateAsync(task);
         return _mapper.Map<TaskResponseDto>(task);
@@ -79,6 +91,8 @@ public class TaskService : ITaskService
 
     public async Task DeleteAsync(int id)
     {
+        var task = await _taskRepository.GetByIdAsync(id);
+        if (task == null) throw new NotFoundException("Task not found");
         await _taskRepository.DeleteAsync(id);
     }
 }

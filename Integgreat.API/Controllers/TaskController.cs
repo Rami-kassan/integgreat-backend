@@ -95,6 +95,14 @@ public class TaskController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("{id}")]
+    [SuperAdmin]
+    public async Task<IActionResult> Update(int id, [FromBody] TaskRequestDto dto)
+    {
+        var result = await _taskService.UpdateAsync(id, dto);
+        return Ok(result);
+    }
+
     [HttpPut("{id}/status")]
     [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] Integgreat.Domain.Enums.TaskStatus status)

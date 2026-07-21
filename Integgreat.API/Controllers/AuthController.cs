@@ -21,55 +21,32 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
-        try
-        {
-            var result = await _authService.LoginAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        var result = await _authService.LoginAsync(dto);
+        return Ok(result);
     }
 
     [HttpPost("register/client")]
     [SuperAdmin]
     public async Task<IActionResult> RegisterClient([FromBody] ClientRegisterDto dto)
     {
-        try
-        {
-            var result = await _authService.RegisterClientAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _authService.RegisterClientAsync(dto);
+        return Ok(result);
     }
 
     [HttpPost("register/admin")]
     [SuperAdmin]
     public async Task<IActionResult> RegisterAdmin([FromBody] AdminRegisterDto dto)
     {
-        try
-        {
-            var result = await _authService.RegisterAdminAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-
-        
+        var result = await _authService.RegisterAdminAsync(dto);
+        return Ok(result);
     }
 
     [HttpGet("me")]
     [Authorize]
-    public async Task<IActionResult> Me()
+    public async Task<IActionResult> Me([FromQuery] int? workspaceId)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var result = await _authService.GetMeAsync(userId);
+        var result = await _authService.GetMeAsync(userId, workspaceId);
         return Ok(result);
     }
 }

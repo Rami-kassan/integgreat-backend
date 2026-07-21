@@ -102,15 +102,8 @@ public class ContractController : ControllerBase
     [SuperAdmin]
     public async Task<IActionResult> Upload([FromBody] ContractRequestDto dto)
     {
-        try
-        {
-            var result = await _contractService.UploadAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _contractService.UploadAsync(dto);
+        return Ok(result);
     }
 
     [HttpPost("upload")]
