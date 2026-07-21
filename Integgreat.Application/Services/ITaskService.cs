@@ -5,8 +5,8 @@ namespace Integgreat.Application.Services;
 
 public interface ITaskService
 {
-    Task<List<TaskResponseDto>> GetAllByProjectAsync(int projectId);
-    Task<TaskResponseDto?> GetByIdAsync(int id);
+    Task<TaskListResponseDto> GetAllByProjectAsync(int projectId, bool canViewHours);
+    Task<TaskResponseDto?> GetByIdAsync(int id, bool canViewHours);
     Task<TaskResponseDto> CreateAsync(TaskRequestDto dto);
     Task<TaskResponseDto> UpdateStatusAsync(int id, TaskStatus status);
     Task DeleteAsync(int id);

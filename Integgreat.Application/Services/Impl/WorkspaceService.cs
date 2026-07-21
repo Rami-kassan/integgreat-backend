@@ -25,23 +25,44 @@ public class WorkspaceService : IWorkspaceService
         _mapper = mapper;
     }
 
+    private int CalculateWorkspaceCompletionPct(Workspace workspace)
+    {
+        var allTasks = workspace.Projects.SelectMany(p => p.Tasks).ToList();
+        var totalEstimated = allTasks.Sum(t => t.EstimatedHours);
+        var totalCompleted = allTasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
+        return totalEstimated == 0 ? 0 : (int)Math.Round((totalCompleted / totalEstimated) * 100);
+    }
+
     public async Task<List<WorkspaceResponseDto>> GetAllAsync()
     {
         var workspaces = await _workspaceRepository.GetAllAsync();
-        return _mapper.Map<List<WorkspaceResponseDto>>(workspaces);
+        return workspaces.Select(w =>
+        {
+            var dto = _mapper.Map<WorkspaceResponseDto>(w);
+            dto.WorkspaceCompletionPct = CalculateWorkspaceCompletionPct(w);
+            return dto;
+        }).ToList();
     }
 
     public async Task<List<WorkspaceResponseDto>> GetAllByClientAsync(int clientId)
     {
         var workspaces = await _workspaceRepository.GetAllByClientAsync(clientId);
-        return _mapper.Map<List<WorkspaceResponseDto>>(workspaces);
+        return workspaces.Select(w =>
+        {
+            var dto = _mapper.Map<WorkspaceResponseDto>(w);
+            dto.WorkspaceCompletionPct = CalculateWorkspaceCompletionPct(w);
+            return dto;
+        }).ToList();
     }
 
     public async Task<WorkspaceResponseDto?> GetByIdAsync(int id)
     {
         var workspace = await _workspaceRepository.GetByIdAsync(id);
         if (workspace == null) return null;
-        return _mapper.Map<WorkspaceResponseDto>(workspace);
+
+        var dto = _mapper.Map<WorkspaceResponseDto>(workspace);
+        dto.WorkspaceCompletionPct = CalculateWorkspaceCompletionPct(workspace);
+        return dto;
     }
 
     public async Task<WorkspaceResponseDto> CreateAsync(WorkspaceRequestDto dto)

@@ -19,6 +19,8 @@ public class WorkspaceRepository : IWorkspaceRepository
         return await _context.Workspaces
             .Include(w => w.Members)
             .Include(w => w.Projects)
+                .ThenInclude(p => p.Tasks)
+                    .ThenInclude(t => t.TimeEntries)
             .ToListAsync();
     }
 
@@ -28,6 +30,8 @@ public class WorkspaceRepository : IWorkspaceRepository
             .Where(wm => wm.ClientId == clientId)
             .Include(wm => wm.Workspace)
                 .ThenInclude(w => w.Projects)
+                    .ThenInclude(p => p.Tasks)
+                        .ThenInclude(t => t.TimeEntries)
             .Select(wm => wm.Workspace)
             .ToListAsync();
     }
@@ -36,8 +40,10 @@ public class WorkspaceRepository : IWorkspaceRepository
     {
         return await _context.Workspaces
             .Include(w => w.Members)
-            .Include(w => w.Projects)
             .Include(w => w.Roles)
+            .Include(w => w.Projects)
+                .ThenInclude(p => p.Tasks)
+                    .ThenInclude(t => t.TimeEntries)
             .FirstOrDefaultAsync(w => w.Id == id);
     }
 
