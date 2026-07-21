@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Integgreat.Application.DTOs.Task;
+using Integgreat.Application.DTOs.TimeEntry;
 using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
@@ -18,17 +19,47 @@ public class TaskService : ITaskService
         _mapper = mapper;
     }
 
-    public async Task<List<TaskResponseDto>> GetAllByProjectAsync(int projectId)
+    public async Task<TaskListResponseDto> GetAllByProjectAsync(int projectId, bool canViewHours)
     {
         var tasks = await _taskRepository.GetAllByProjectAsync(projectId);
-        return _mapper.Map<List<TaskResponseDto>>(tasks);
+
+        var totalEstimated = tasks.Sum(t => t.EstimatedHours);
+        var totalCompleted = tasks.SelectMany(t => t.TimeEntries).Sum(te => te.Hours);
+        var projectPct = totalEstimated == 0 ? 0 : (int)Math.Round((totalCompleted / totalEstimated) * 100);
+
+        if (canViewHours)
+        {
+            var dtos = _mapper.Map<List<TaskResponseDto>>(tasks);
+            return new TaskListResponseDto
+            {
+                ProjectCompletionPct = projectPct,
+                Tasks = dtos.Cast<object>().ToList(),
+            };
+        }
+        else
+        {
+            var dtos = _mapper.Map<List<TaskSummaryDto>>(tasks);
+            return new TaskListResponseDto
+            {
+                ProjectCompletionPct = projectPct,
+                Tasks = dtos.Cast<object>().ToList(),
+            };
+        }
     }
 
-    public async Task<TaskResponseDto?> GetByIdAsync(int id)
+    public async Task<TaskResponseDto?> GetByIdAsync(int id, bool canViewHours)
     {
         var task = await _taskRepository.GetByIdAsync(id);
         if (task == null) return null;
-        return _mapper.Map<TaskResponseDto>(task);
+        var dto = _mapper.Map<TaskResponseDto>(task);
+
+        if (!canViewHours)
+        {
+            dto.CompletedHours = 0;
+            dto.EstimatedHours = 0;
+            dto.TimeEntries = new List<TimeEntryResponseDto>();
+        }
+        return dto;
     }
 
     public async Task<TaskResponseDto> CreateAsync(TaskRequestDto dto)

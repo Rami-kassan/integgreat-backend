@@ -41,7 +41,6 @@ public static class DbSeeder
             {
                 Permission.ViewHours,
                 Permission.ViewContract,
-                Permission.DownloadContract,
                 Permission.ViewTask,
                 Permission.ViewRequest,
                 Permission.CreateRequest,

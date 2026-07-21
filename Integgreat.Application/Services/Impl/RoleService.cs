@@ -87,4 +87,9 @@ public class RoleService : IRoleService
             .Select(rp => rp.Permission.ToString())
             .ToList()
     };
+
+    public async Task<int?> GetWorkspaceIdByRoleIdAsync(int roleId)
+    {
+        return await _roleRepository.GetWorkspaceIdByRoleIdAsync(roleId);
+    }
 }

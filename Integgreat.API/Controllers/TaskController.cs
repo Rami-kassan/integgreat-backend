@@ -1,4 +1,5 @@
-﻿using Integgreat.API.Middleware;
+﻿using Integgreat.API.Helpers;
+using Integgreat.API.Middleware;
 using Integgreat.Application.DTOs.Task;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
@@ -16,16 +17,19 @@ public class TaskController : ControllerBase
     private readonly ITaskService _taskService;
     private readonly IProjectService _projectService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly PermissionHelper _permissionHelper;
 
     public TaskController(
     ITaskService taskService,
     IProjectService projectService,
-    IWorkspaceService workspaceService)
-{
-    _taskService = taskService;
-    _projectService = projectService;
-    _workspaceService = workspaceService;
-}
+    IWorkspaceService workspaceService,
+    PermissionHelper permissionHelper)
+    {
+        _taskService = taskService;
+        _projectService = projectService;
+        _workspaceService = workspaceService;
+        _permissionHelper = permissionHelper;
+    }
 
     [HttpGet("project/{projectId}")]
     public async Task<IActionResult> GetAllByProject(int projectId)
@@ -37,18 +41,20 @@ public class TaskController : ControllerBase
 
         if (role == "ADMIN")
         {
-            var tasks = await _taskService.GetAllByProjectAsync(projectId);
+            var tasks = await _taskService.GetAllByProjectAsync(projectId, true);
             return Ok(tasks);
         }
-        else
-        {
-            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
-            if (!isMember) return NotFound();
 
-            var tasks = await _taskService.GetAllByProjectAsync(projectId);
-            return Ok(tasks);
-        }
+        var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
+        if (!isMember) return NotFound();
+
+        var hasViewTask = await _permissionHelper.HasPermissionAsync(User, "ViewTask", project.WorkspaceId);
+        if (!hasViewTask) return Forbid();
+
+        var canViewHours = await _permissionHelper.HasPermissionAsync(User, "ViewHours", project.WorkspaceId);
+        var tasks2 = await _taskService.GetAllByProjectAsync(projectId, canViewHours);
+        return Ok(tasks2);
     }
 
     [HttpGet("{id}")]
@@ -56,25 +62,29 @@ public class TaskController : ControllerBase
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        var task = await _taskService.GetByIdAsync(id);
-        if (task == null) return NotFound();
-
         if (role == "ADMIN")
         {
+            var task = await _taskService.GetByIdAsync(id, true);
+            if (task == null) return NotFound();
             return Ok(task);
         }
-        else
-        {
-            var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-            var project = await _projectService.GetByIdAsync(task.ProjectId);
-            if (project == null) return NotFound();
+        var task2 = await _taskService.GetByIdAsync(id, true);
+        if (task2 == null) return NotFound();
 
-            var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
-            if (!isMember) return NotFound();
+        var project = await _projectService.GetByIdAsync(task2.ProjectId);
+        if (project == null) return NotFound();
 
-            return Ok(task);
-        }
+        var clientId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
+        if (!isMember) return NotFound();
+
+        var hasViewTask = await _permissionHelper.HasPermissionAsync(User, "ViewTask", project.WorkspaceId);
+        if (!hasViewTask) return Forbid();
+
+        var canViewHours = await _permissionHelper.HasPermissionAsync(User, "ViewHours", project.WorkspaceId);
+        var result = await _taskService.GetByIdAsync(id, canViewHours);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -105,7 +115,7 @@ public class TaskController : ControllerBase
     [SuperAdmin]
     public async Task<IActionResult> Delete(int id)
     {
-        var task = await _taskService.GetByIdAsync(id);
+        var task = await _taskService.GetByIdAsync(id, true);
         if (task == null) return NotFound();
 
         await _taskService.DeleteAsync(id);

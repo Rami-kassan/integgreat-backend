@@ -24,8 +24,17 @@ public class MappingProfile : Profile
         CreateMap<ContractRequestDto, Contract>();
 
         // Task
-        CreateMap<ProjectTask, TaskResponseDto>();
+        CreateMap<ProjectTask, TaskResponseDto>()
+            .ForMember(dest => dest.CompletedHours,
+                opt => opt.MapFrom(src => src.TimeEntries.Sum(e => e.Hours)))
+            .ForMember(dest => dest.CompletionPct,
+                opt => opt.MapFrom(src => src.EstimatedHours == 0 ? 0 :
+                    (int)Math.Round((src.TimeEntries.Sum(e => e.Hours) / src.EstimatedHours) * 100)));
         CreateMap<TaskRequestDto, ProjectTask>();
+        CreateMap<ProjectTask, TaskSummaryDto>()
+            .ForMember(dest => dest.CompletionPct,
+                opt => opt.MapFrom(src => src.EstimatedHours == 0 ? 0 :
+                    (int)Math.Round((src.TimeEntries.Sum(e => e.Hours) / src.EstimatedHours) * 100)));
 
         // Request
         CreateMap<Request, RequestResponseDto>();
@@ -54,9 +63,5 @@ public class MappingProfile : Profile
         CreateMap<TimeEntry, TimeEntryResponseDto>();
         CreateMap<TimeEntryRequestDto, TimeEntry>();
 
-        // Task — CompletedHours calculé depuis TimeEntries
-        CreateMap<ProjectTask, TaskResponseDto>()
-            .ForMember(dest => dest.CompletedHours,
-                       opt => opt.MapFrom(src => src.TimeEntries.Sum(e => e.Hours)));
     }
 }

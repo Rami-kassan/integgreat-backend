@@ -38,23 +38,10 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new NotFoundException("User not found");
 
-        var permissions = new List<string>();
+        var permissions = new Dictionary<int, List<string>>();
         if (user is Client)
         {
-            if (workspaceId.HasValue)
-            {
-                // Permissions du rôle du client dans CE workspace uniquement.
-                var member = await _workspaceMemberRepository.GetByClientAndWorkspaceAsync(userId, workspaceId.Value);
-                permissions = member?.Role.RolePermissions
-                    .Select(rp => rp.Permission.ToString())
-                    .Distinct()
-                    .ToList() ?? new List<string>();
-            }
-            else
-            {
-                // Pas de workspace précisé (ex: juste après le login) : union de tous les workspaces.
-                permissions = await _userRepository.GetClientPermissionsAsync(userId);
-            }
+            permissions = await _userRepository.GetClientPermissionsByWorkspaceAsync(userId);
         }
 
         return new MeResponseDto

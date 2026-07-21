@@ -1,13 +1,14 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Integgreat.API.Helpers;
 using Integgreat.API.Middleware;
 using Integgreat.Application.DTOs.Contract;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Supabase;
+using System.Security.Claims;
 
 namespace Integgreat.API.Controllers;
 
@@ -20,17 +21,20 @@ public class ContractController : ControllerBase
     private readonly IProjectService _projectService;
     private readonly IWorkspaceService _workspaceService;
     private readonly IConfiguration _configuration;
+    private readonly PermissionHelper _permissionHelper;
 
     public ContractController(
     IContractService contractService,
     IProjectService projectService,
     IWorkspaceService workspaceService,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    PermissionHelper permissionHelper)
     {
         _contractService = contractService;
         _projectService = projectService;
         _workspaceService = workspaceService;
         _configuration = configuration;
+        _permissionHelper = permissionHelper;
     }
 
     [HttpGet("project/{projectId}")]
@@ -53,6 +57,9 @@ public class ContractController : ControllerBase
 
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewContract", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
 
             var contracts = await _contractService.GetAllByProjectAsync(projectId);
             return Ok(contracts);
@@ -81,6 +88,9 @@ public class ContractController : ControllerBase
 
             var isMember = await _workspaceService.IsClientMemberAsync(clientId, project.WorkspaceId);
             if (!isMember) return NotFound();
+
+            var hasPermission = await _permissionHelper.HasPermissionAsync(User, "ViewContract", project.WorkspaceId);
+            if (!hasPermission) return Forbid();
 
             var contract = await _contractService.GetActiveByProjectAsync(projectId);
             if (contract == null) return NotFound();
@@ -135,7 +145,6 @@ public class ContractController : ControllerBase
     }
 
 [HttpGet("{id}/download")]
-[Authorize]
 public async Task<IActionResult> GetDownloadUrl(int id)
 {
     var contract = await _contractService.GetByIdAsync(id);

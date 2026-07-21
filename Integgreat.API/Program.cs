@@ -1,4 +1,4 @@
-using Integgreat.API.Middleware;
+using Integgreat.API.Helpers;
 using Integgreat.Application.Mappings;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
@@ -61,6 +61,7 @@ builder.Services.AddScoped<IWorkspaceMemberService, WorkspaceMemberService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ITimeEntryService, TimeEntryService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<PermissionHelper>();
 
 // ═══════════════════════════════
 // AUTOMAPPER
