@@ -7,4 +7,5 @@ public class ContractResponseDto
     public string FilePath { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime UploadedAt { get; set; }
+    public int ProjectId { get; set; }
 }
