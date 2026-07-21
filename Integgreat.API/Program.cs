@@ -1,4 +1,5 @@
 using Integgreat.API.Helpers;
+using Integgreat.API.Middleware;
 using Integgreat.Application.Mappings;
 using Integgreat.Application.Services;
 using Integgreat.Application.Services.Impl;
