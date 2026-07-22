@@ -49,4 +49,20 @@ public class AuthController : ControllerBase
         var result = await _authService.GetMeAsync(userId, workspaceId);
         return Ok(result);
     }
+
+    [HttpPut("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            await _authService.ChangePasswordAsync(userId, dto);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

@@ -8,4 +8,5 @@ public interface IAuthService
     Task<LoginResponseDto> RegisterClientAsync(ClientRegisterDto dto);
     Task<LoginResponseDto> RegisterAdminAsync(AdminRegisterDto dto);
     Task<MeResponseDto> GetMeAsync(int userId, int? workspaceId = null);
+    Task ChangePasswordAsync(int userId, ChangePasswordDto dto);
 }

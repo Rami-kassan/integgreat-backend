@@ -70,4 +70,9 @@ public class UserRepository : IUserRepository
                 .ToList()
         );
     }
+    public async Task UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
 }
