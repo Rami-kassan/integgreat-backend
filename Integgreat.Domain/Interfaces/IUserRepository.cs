@@ -10,6 +10,10 @@ public interface IUserRepository
     Task<List<string>> GetClientPermissionsAsync(int clientId);
     Task<List<User>> GetAllAsync();
     Task<List<User>> GetRecentAsync(int count);
+
     Task<Dictionary<int, List<string>>> GetClientPermissionsByWorkspaceAsync(int clientId);
     Task UpdateAsync(User user);
+
+    Task DeleteAsync(int id);
+
 }

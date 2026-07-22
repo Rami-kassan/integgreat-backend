@@ -12,6 +12,7 @@ public interface IAdminService
     Task<AdminHoursSummaryDto> GetHoursSummaryAsync();
     Task<List<AdminWorkspaceHoursDto>> GetHoursByWorkspaceAsync();
     Task<AdminUserDetailsDto?> GetUserDetailsAsync(int userId);
+    Task DeleteUserAsync(int userId, bool requestedBySuperAdmin);
     Task<List<AdminWorkspaceDto>> GetWorkspacesAsync();
     Task<AdminWorkspaceDetailsDto?> GetWorkspaceDetailsAsync(int workspaceId);
     Task<List<AdminProjectDto>> GetProjectsAsync();

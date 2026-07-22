@@ -30,6 +30,15 @@ public class WorkspaceMemberService : IWorkspaceMemberService
 
     public async Task<WorkspaceMemberResponseDto> AddMemberAsync(WorkspaceMemberRequestDto dto)
     {
+        // Un workspace ne peut avoir qu'un seul Owner (sauf s'il n'en a plus, ex: ancien Owner supprimé).
+        var role = await _roleRepository.GetByIdAsync(dto.RoleId);
+        if (role?.Name == "Owner")
+        {
+            var existingMembers = await _workspaceMemberRepository.GetAllByWorkspaceAsync(dto.WorkspaceId);
+            if (existingMembers.Any(m => m.Role.Name == "Owner"))
+                throw new ValidationAppException("This workspace already has an Owner.");
+        }
+
         var member = new WorkspaceMember
         {
             ClientId = dto.ClientId,

@@ -82,6 +82,15 @@ public class AdminController : ControllerBase
         return Ok(result);
     }
 
+    [HttpDelete("users/{id}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        var isSuperAdmin = User.FindFirst("isSuperAdmin")?.Value == "True";
+        await _adminService.DeleteUserAsync(id, isSuperAdmin);
+        return NoContent();
+    }
+
     [HttpGet("workspaces")]
     [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> GetWorkspaces()

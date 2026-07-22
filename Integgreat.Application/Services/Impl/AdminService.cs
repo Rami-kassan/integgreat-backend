@@ -1,4 +1,5 @@
 ﻿using Integgreat.Application.DTOs.Admin;
+using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Interfaces;
 
 namespace Integgreat.Application.Services.Impl;
@@ -230,6 +231,22 @@ public class AdminService : IAdminService
             Projects = projects,
         };
     }
+    public async Task DeleteUserAsync(int userId, bool requestedBySuperAdmin)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) throw new NotFoundException("User not found");
+
+        if (user is Domain.Entities.Admin admin)
+        {
+            if (admin.IsSuperAdmin)
+                throw new ValidationAppException("A super admin cannot be deleted.");
+            if (!requestedBySuperAdmin)
+                throw new ValidationAppException("Only a super admin can delete an admin.");
+        }
+
+        await _userRepository.DeleteAsync(userId);
+    }
+
     public async Task<List<AdminWorkspaceDto>> GetWorkspacesAsync()
     {
         var workspaces = await _workspaceRepository.GetAllWithDetailsAsync();
