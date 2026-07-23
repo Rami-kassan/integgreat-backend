@@ -75,4 +75,10 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<User?> GetByResetTokenAsync(string token)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token);
+    }
 }

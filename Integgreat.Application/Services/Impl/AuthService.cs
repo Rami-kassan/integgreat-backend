@@ -3,6 +3,7 @@ using Integgreat.Application.DTOs.Auth;
 using Integgreat.Application.Exceptions;
 using Integgreat.Domain.Entities;
 using Integgreat.Domain.Interfaces;
+using Integgreat.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,17 +18,21 @@ public class AuthService : IAuthService
     private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         IUserRepository userRepository,
         IWorkspaceMemberRepository workspaceMemberRepository,
         IMapper mapper,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IEmailService emailService
+        )
     {
         _userRepository = userRepository;
         _workspaceMemberRepository = workspaceMemberRepository;
         _mapper = mapper;
         _configuration = configuration;
+        _emailService = emailService;
     }
     // ═══════════════════════════════
     // GET ME
@@ -183,4 +188,36 @@ public class AuthService : IAuthService
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
         await _userRepository.UpdateAsync(user);
     }
+    // ═══════════════════════════════
+    // FORGOT PASSWORD
+    // ═══════════════════════════════
+
+    public async Task ForgotPasswordAsync(string email)
+    {
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user == null) return; // Silencieux — on ne révèle pas si l'email existe
+
+        var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .Replace("+", "-").Replace("/", "_").Replace("=", "");
+
+        user.PasswordResetToken = token;
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        await _userRepository.UpdateAsync(user);
+
+        var resetLink = $"{_configuration["Frontend:Url"]}/reset-password?token={token}";
+        await _emailService.SendPasswordResetEmailAsync(email, resetLink);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordDto dto)
+    {
+        var user = await _userRepository.GetByResetTokenAsync(dto.Token);
+        if (user == null || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+            throw new Exception("Token invalide ou expiré.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+        await _userRepository.UpdateAsync(user);
+    }
+
 }

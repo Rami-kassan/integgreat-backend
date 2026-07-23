@@ -9,4 +9,6 @@ public interface IAuthService
     Task<LoginResponseDto> RegisterAdminAsync(AdminRegisterDto dto);
     Task<MeResponseDto> GetMeAsync(int userId, int? workspaceId = null);
     Task ChangePasswordAsync(int userId, ChangePasswordDto dto);
+    Task ForgotPasswordAsync(string email);
+    Task ResetPasswordAsync(ResetPasswordDto dto);
 }

@@ -12,4 +12,5 @@ public interface IUserRepository
     Task<List<User>> GetRecentAsync(int count);
     Task<Dictionary<int, List<string>>> GetClientPermissionsByWorkspaceAsync(int clientId);
     Task UpdateAsync(User user);
+    Task<User?> GetByResetTokenAsync(string token);
 }
