@@ -55,6 +55,7 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
+
     public async Task<Dictionary<int, List<string>>> GetClientPermissionsByWorkspaceAsync(int clientId)
     {
         var members = await _context.WorkspaceMembers
@@ -76,6 +77,17 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+
+    }
+    
     public async Task<User?> GetByResetTokenAsync(string token)
     {
         return await _context.Users
