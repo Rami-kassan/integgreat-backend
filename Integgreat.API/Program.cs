@@ -6,10 +6,12 @@ using Integgreat.Application.Services.Impl;
 using Integgreat.Domain.Interfaces;
 using Integgreat.Infrastructure.Data;
 using Integgreat.Infrastructure.Repositories;
+using Integgreat.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 using System.Text;
 
 
@@ -63,6 +65,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ITimeEntryService, TimeEntryService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<PermissionHelper>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ═══════════════════════════════
 // AUTOMAPPER
@@ -101,6 +104,17 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+// ═══════════════════════════════
+// RESEND
+// ═══════════════════════════════
+
+builder.Services.AddHttpClient<ResendClient>();
+builder.Services.Configure<ResendClientOptions>(o =>
+{
+    o.ApiToken = builder.Configuration["Resend:ApiKey"]!;
+});
+builder.Services.AddTransient<IResend, ResendClient>();
 
 var app = builder.Build();
 

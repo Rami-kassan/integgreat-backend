@@ -87,4 +87,10 @@ public class UserRepository : IUserRepository
         }
 
     }
+    
+    public async Task<User?> GetByResetTokenAsync(string token)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token);
+    }
 }

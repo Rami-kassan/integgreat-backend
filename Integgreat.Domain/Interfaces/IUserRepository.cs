@@ -16,4 +16,5 @@ public interface IUserRepository
 
     Task DeleteAsync(int id);
 
+    Task<User?> GetByResetTokenAsync(string token);
 }
